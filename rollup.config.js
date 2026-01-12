@@ -8,7 +8,7 @@ export default [
             file: 'dist/senangstart-actions.js',
             format: 'iife',
             name: 'SenangStart',
-            banner: '/**\n * SenangStart Actions v0.1.0\n * A lightweight, AI-friendly, declarative JavaScript framework\n * @license MIT\n */'
+            banner: '/**\n * SenangStart Actions v0.1.0\n * Declarative UI framework for humans and AI agents\n * @license MIT\n */'
         }
     },
     // Minified browser bundle
@@ -27,7 +27,7 @@ export default [
         output: {
             file: 'dist/senangstart-actions.esm.js',
             format: 'es',
-            banner: '/**\n * SenangStart Actions v0.1.0\n * A lightweight, AI-friendly, declarative JavaScript framework\n * @license MIT\n */'
+            banner: '/**\n * SenangStart Actions v0.1.0\n * Declarative UI framework for humans and AI agents\n * @license MIT\n */'
         }
     }
 ];

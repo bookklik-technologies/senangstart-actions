@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: SenangStart Actions
-  text: Lightweight Declarative Framework
-  tagline: A lightweight, AI-friendly, declarative JavaScript framework for building reactive UIs
+  text: Declarative UI Framework
+  tagline: Declarative UI framework for humans and AI agents
   actions:
     - theme: brand
       text: Get Started

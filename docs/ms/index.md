@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: SenangStart Actions
-  text: Rangka Kerja Deklaratif Ringan
-  tagline: Rangka kerja JavaScript yang ringan, mesra AI, dan deklaratif untuk membina UI reaktif
+  text: Rangka Kerja UI Deklaratif
+  tagline: Rangka kerja UI deklaratif untuk manusia dan ejen AI
   actions:
     - theme: brand
       text: Mula Sekarang
@@ -17,16 +17,16 @@ hero:
     alt: SenangStart Actions
 
 features:
-  - icon: ⚡
+  - icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"></path></svg>
     title: Ringan
     details: Saiz minimum tanpa langkah pembinaan diperlukan. Hanya sertakan skrip dan mula membina.
-  - icon: 🔄
+  - icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"></path></svg>
     title: Reaktif
     details: Kemas kini DOM automatik apabila data anda berubah. Tiada manipulasi DOM manual diperlukan.
-  - icon: 🤖
+  - icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h12a2.25 2.25 0 0 1 2.25 2.25v7.5A2.25 2.25 0 0 1 18 18H6a2.25 2.25 0 0 1-2.25-2.25v-7.5A2.25 2.25 0 0 1 6 6zM12 3v3M9 3h6M8.25 12a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM15.75 12a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM9 15h6M7.5 18v3M16.5 18v3"></path></svg>
     title: Mesra AI
     details: Sintaks deklaratif yang mudah difahami dan dijana dengan pembantu AI.
-  - icon: 📝
+  - icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.25 6.75L22.5 12l-5.25 5.25M6.75 17.25L1.5 12l5.25-5.25M14.25 3.75l-4.5 16.5"></path></svg>
     title: Deklaratif
     details: Gunakan atribut HTML untuk menentukan tingkah laku. Tiada JavaScript kompleks diperlukan.
 ---

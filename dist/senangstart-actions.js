@@ -1,6 +1,6 @@
 /**
  * SenangStart Actions v0.1.0
- * A lightweight, AI-friendly, declarative JavaScript framework
+ * Declarative UI framework for humans and AI agents
  * @license MIT
  */
 var SenangStart = (function () {
@@ -892,7 +892,7 @@ var SenangStart = (function () {
 
     /**
      * SenangStart Actions v0.1.0
-     * A lightweight, AI-friendly, declarative JavaScript framework
+     * Declarative UI framework for humans and AI agents
      * 
      * @license MIT
      * @author Bookklik
