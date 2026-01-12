@@ -76,6 +76,7 @@ const propertiesMS = [
 export default defineConfig({
   title: 'SenangStart Actions',
   description: 'A lightweight, AI-friendly, declarative JavaScript framework',
+  base: '/senangstart-actions/',
   
   locales: {
     root: {
