@@ -1,6 +1,6 @@
 {
   "name": "@bookklik/senangstart-actions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Declarative UI framework for humans and AI agents",
   "main": "dist/senangstart-actions.js",
   "module": "dist/senangstart-actions.esm.js",

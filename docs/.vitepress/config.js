@@ -77,6 +77,10 @@ export default defineConfig({
   title: 'SenangStart Actions',
   description: 'A lightweight, AI-friendly, declarative JavaScript framework',
   base: '/senangstart-actions/',
+
+  head: [
+    ['link', { rel: 'icon', type: 'image/png', href: 'https://senangstart.com/img/ss_icon_accent.svg' }],
+  ],
   
   locales: {
     root: {
