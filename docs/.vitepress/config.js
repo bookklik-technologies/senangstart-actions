@@ -93,6 +93,7 @@ export default defineConfig({
       link: '/ms/',
       themeConfig: {
         nav: [
+          { text: 'Utama', link: '/ms/' },
           { text: 'Panduan', link: '/ms/guide/getting-started' },
           { text: 'API', link: '/ms/api/' },
           { text: 'Arahan', link: '/ms/directives/' },
@@ -141,6 +142,7 @@ export default defineConfig({
     siteTitle: false,
     
     nav: [
+      { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/getting-started' },
       { text: 'API', link: '/api/' },
       { text: 'Directives', link: '/directives/' },
