@@ -13,7 +13,7 @@ hero:
       text: Lihat di GitHub
       link: https://github.com/bookklik-technologies/senangstart-actions
   image:
-    src: https://senangstart.com/img/use_senangstart.svg
+    src: /public/assets/senangstart-actions-logo.svg
     alt: SenangStart Actions
 
 features:
