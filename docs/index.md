@@ -13,7 +13,7 @@ hero:
       text: View on GitHub
       link: https://github.com/bookklik/senangstart-actions
   image:
-    src: /public/assets/senangstart-actions-logo.svg
+    src: /assets/senangstart-actions-logo.svg
     alt: SenangStart Actions
 
 features:
@@ -30,6 +30,12 @@ features:
     title: Declarative
     details: Use HTML attributes to define behavior. No complex JavaScript required.
 ---
+
+<style>
+  .VPImage {
+    filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.2));
+  }
+</style>
 
 ## Quick Example
 

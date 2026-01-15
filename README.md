@@ -2,6 +2,8 @@
 
 Declarative UI framework for humans and AI agents.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+
 ## Installation
 
 ```bash
@@ -53,6 +55,10 @@ npm run test
 npm run docs:dev
 ```
 
+## Documentation
+
+Full docs at [bookklik-technologies.github.io/senangstart-actions](https://bookklik-technologies.github.io/senangstart-actions/)
+
 ## License
 
-MIT
+Read [MIT License](LICENSE.md)
