@@ -80,6 +80,7 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', type: 'image/png', href: 'https://senangstart.com/img/ss_icon_accent.svg' }],
+    ['script', { src: '/senangstart-actions/assets/senangstart-actions.min.js', defer: true }]
   ],
   
   locales: {
@@ -128,18 +129,13 @@ export default defineConfig({
             collapsed: false,
             items: propertiesMS
           }
-        ],
-        footer: {
-          message: 'Dikeluarkan di bawah Lesen MIT.',
-          copyright: 'Hak Cipta © 2026 Bookklik Technologies'
-        }
+        ]
       }
     }
   },
   
   themeConfig: {
-    logo: 'https://senangstart.com/img/ss_logo_typo.svg',
-    siteTitle: false,
+    logo: '/assets/ss-logo.svg',
     
     nav: [
       { text: 'Home', link: '/' },
@@ -189,8 +185,8 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2026 Bookklik Technologies'
+      message: 'SenangStart Actions v' + pkg.version + ' is part of the <a href="https://senangstart.com/" target="_blank" style="color: var(--vp-c-brand)">SenangStart</a> ecosystem.',
+      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://bookklik.com/" target="_blank" style="color: #ff6600">Bookklik Technologies</a>. Released under the MIT License.`
     }
   }
 })
