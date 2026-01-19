@@ -11,7 +11,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: View on GitHub
-      link: https://github.com/bookklik/senangstart-actions
+      link: https://github.com/bookklik-technologies/senangstart-actions
   image:
     src: /assets/senangstart-actions-logo.svg
     alt: SenangStart Actions
