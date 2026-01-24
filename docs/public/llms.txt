@@ -1,0 +1,51 @@
+# SenangStart Actions
+
+> Declarative UI framework for humans and AI agents. A lightweight JavaScript library that transforms HTML attributes into reactive behaviors using `ss-*` directives—no build step required.
+
+## Documentation
+
+- [Getting Started](https://bookklik-technologies.github.io/senangstart-actions/): Introduction and basic usage
+- [Directives Reference](https://bookklik-technologies.github.io/senangstart-actions/directives/): Complete reference for all ss-* directives
+
+## Core Directives
+
+- [ss-data](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-data): Define component state within a scope
+- [ss-text](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-text): Update text content reactively
+- [ss-html](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-html): Update inner HTML reactively
+- [ss-on](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-on): Listen for events (e.g., `ss-on:click`)
+- [ss-model](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-model): Two-way data binding for inputs
+- [ss-if](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-if): Conditionally render elements
+- [ss-show](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-show): Toggle visibility (display: none)
+- [ss-for](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-for): Loop over arrays/objects
+- [ss-bind](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-bind): Bind attributes dynamically
+
+## Magic Properties
+
+- [Magic Properties](https://bookklik-technologies.github.io/senangstart-actions/directives/magic-properties): Special properties available in expressions ($el, $refs, $store, $dispatch, $watch, $nextTick)
+
+## Quick Start
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions"></script>
+
+<div ss-data="{ count: 0 }">
+    <button ss-on:click="count--">-</button>
+    <span ss-text="count"></span>
+    <button ss-on:click="count++">+</button>
+</div>
+```
+
+## API
+
+- `SenangStart.data(name, factory)` - Register a reusable data component
+- `SenangStart.store(name, data)` - Register a global reactive store
+- `SenangStart.init(root)` - Manually initialize a DOM tree
+- `SenangStart.start()` - Start the framework (auto-called on load)
+- `SenangStart.version` - Current version string
+
+## Optional
+
+- [ss-ref](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-ref): Register element reference
+- [ss-effect](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-effect): Run reactive effect
+- [ss-cloak](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-cloak): Hide element until initialized
+- [ss-transition](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-transition): CSS transition animations
