@@ -1,6 +1,6 @@
 {
   "name": "@bookklik/senangstart-actions",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Declarative UI framework for humans and AI agents",
   "main": "dist/senangstart-actions.js",
   "module": "dist/senangstart-actions.esm.js",
@@ -12,7 +12,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && npx -y shx cp dist/senangstart-actions.min.js docs/public/assets/",
     "dev": "npx -y serve .",
     "test": "vitest run",
     "test:watch": "vitest",
