@@ -18,10 +18,19 @@
 - [ss-show](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-show): Toggle visibility (display: none)
 - [ss-for](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-for): Loop over arrays/objects
 - [ss-bind](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-bind): Bind attributes dynamically
+- [ss-id](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-id): Declare scoped IDs for accessible components
+- [ss-teleport](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-teleport): Teleport content to another DOM location (e.g., `ss-teleport="body"`)
 
 ## Magic Properties
 
-- [Magic Properties](https://bookklik-technologies.github.io/senangstart-actions/directives/magic-properties): Special properties available in expressions ($el, $refs, $store, $dispatch, $watch, $nextTick)
+- [Magic Properties](https://bookklik-technologies.github.io/senangstart-actions/directives/magic-properties): Special properties available in expressions
+  - `$el`: Reference to the current DOM element
+  - `$refs`: Access elements marked with `ss-ref`
+  - `$store`: Access global stores
+  - `$dispatch`: Dispatch custom events
+  - `$watch`: Watch data changes
+  - `$nextTick`: Wait for next DOM update
+  - `$id`: Generate scoped, unique IDs (requires `ss-id`)
 
 ## Quick Start
 
@@ -43,9 +52,9 @@
 - `SenangStart.start()` - Start the framework (auto-called on load)
 - `SenangStart.version` - Current version string
 
-## Optional
+## Optional / Advanced
 
 - [ss-ref](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-ref): Register element reference
 - [ss-effect](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-effect): Run reactive effect
 - [ss-cloak](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-cloak): Hide element until initialized
-- [ss-transition](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-transition): CSS transition animations
+- [ss-transition](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-transition): CSS transition animations with modifiers (e.g., `ss-transition.duration.500ms.scale.90`)

@@ -62,6 +62,12 @@ Kendalikan peristiwa DOM dengan `ss-on:eventname`:
 </div>
 ```
 
+## Integrasi AI
+
+SenangStart Actions direka bentuk untuk mesra AI. Kami menyediakan fail `llms.txt` yang membantu Model Bahasa Besar (LLM) memahami dokumentasi rangka kerja dengan cekap.
+
+Anda boleh halakan pembantu AI anda ke URL dokumentasi kami, atau secara khusus menyebut laluan `/llms.txt` (contohnya, `https://bookklik-technologies.github.io/senangstart-actions/llms.txt`) untuk memberikannya ringkasan padat semua arahan dan sifat. Ini sesuai untuk pengguna "Cursor" atau "Windsurf" yang ingin menggunakan SenangStart Actions dengan konteks.
+
 ## Aplikasi Pertama Anda
 
 Berikut adalah contoh pembilang lengkap:

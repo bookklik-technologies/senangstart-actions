@@ -11,6 +11,7 @@ SenangStart Actions provides special properties that are available within any `s
 | [$el](/properties/el) | Current element reference |
 | [$event](/properties/event) | Native event object |
 | [$dispatch](/properties/dispatch) | Emit custom events |
+| [$id](/properties/id) | Generate scoped IDs |
 
 ## Quick Reference
 

@@ -62,6 +62,12 @@ Handle DOM events with `ss-on:eventname`:
 </div>
 ```
 
+## AI Integration
+
+SenangStart Actions is designed to be AI-friendly. We provide an `llms.txt` file that helps Large Language Models (LLMs) understand the framework's documentation efficiently.
+
+You can point your AI assistant to our documentation URL, or specifically mentions the `/llms.txt` path (e.g., `https://bookklik-technologies.github.io/senangstart-actions/llms.txt`) to give it a concise summary of all directives and properties. This is perfect for "Cursor" or "Windsurf" users who want to use SenangStart Actions with context.
+
 ## Your First App
 
 Here's a complete counter example:

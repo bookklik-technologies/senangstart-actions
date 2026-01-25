@@ -8,6 +8,7 @@ SenangStart Actions menggunakan atribut HTML dengan awalan `ss-` untuk menambah 
 |--------|------------|
 | [ss-data](/ms/directives/ss-data) | Mentakrifkan skop data reaktif |
 | [ss-text](/ms/directives/ss-text) | Mengikat kandungan teks |
+| [ss-id](/ms/directives/ss-id) | Isytihar ID berskop |
 | [ss-show](/ms/directives/ss-show) | Togol keterlihatan |
 | [ss-if](/ms/directives/ss-if) | Rendering bersyarat |
 | [ss-for](/ms/directives/ss-for) | Rendering senarai |
@@ -27,6 +28,7 @@ SenangStart Actions menggunakan atribut HTML dengan awalan `ss-` untuk menambah 
 | [ss-ref](/ms/directives/ss-ref) | Rujukan elemen |
 | [ss-effect](/ms/directives/ss-effect) | Kesan sampingan |
 | [ss-transition](/ms/directives/ss-transition) | Transisi CSS |
+| [ss-teleport](/ms/directives/ss-teleport) | Teleport kandungan |
 | [ss-cloak](/ms/directives/ss-cloak) | Sembunyikan sehingga sedia |
 
 ## Contoh Pantas

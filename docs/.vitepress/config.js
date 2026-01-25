@@ -20,11 +20,13 @@ const directivesEN = [
   { text: 'ss-ref', link: '/directives/ss-ref' },
   { text: 'ss-effect', link: '/directives/ss-effect' },
   { text: 'ss-transition', link: '/directives/ss-transition' },
-  { text: 'ss-cloak', link: '/directives/ss-cloak' }
+  { text: 'ss-cloak', link: '/directives/ss-cloak' },
+  { text: 'ss-id', link: '/directives/ss-id' },
+  { text: 'ss-teleport', link: '/directives/ss-teleport' }
 ]
 
 const directivesMS = [
-  { text: 'Gambaran Keseluruhan', link: '/ms/directives/' },
+  { text: 'Gambaran', link: '/ms/directives/' },
   { text: 'ss-data', link: '/ms/directives/ss-data' },
   { text: 'ss-text', link: '/ms/directives/ss-text' },
   { text: 'ss-show', link: '/ms/directives/ss-show' },
@@ -36,7 +38,9 @@ const directivesMS = [
   { text: 'ss-ref', link: '/ms/directives/ss-ref' },
   { text: 'ss-effect', link: '/ms/directives/ss-effect' },
   { text: 'ss-transition', link: '/ms/directives/ss-transition' },
-  { text: 'ss-cloak', link: '/ms/directives/ss-cloak' }
+  { text: 'ss-cloak', link: '/ms/directives/ss-cloak' },
+  { text: 'ss-id', link: '/ms/directives/ss-id' },
+  { text: 'ss-teleport', link: '/ms/directives/ss-teleport' }
 ]
 
 const apiEN = [
@@ -48,7 +52,7 @@ const apiEN = [
 ]
 
 const apiMS = [
-  { text: 'Gambaran Keseluruhan', link: '/ms/api/' },
+  { text: 'Gambaran', link: '/ms/api/' },
   { text: 'data()', link: '/ms/api/data' },
   { text: 'store()', link: '/ms/api/store' },
   { text: 'init()', link: '/ms/api/init' },
@@ -61,16 +65,18 @@ const propertiesEN = [
   { text: '$store', link: '/properties/store' },
   { text: '$el', link: '/properties/el' },
   { text: '$event', link: '/properties/event' },
-  { text: '$dispatch', link: '/properties/dispatch' }
+  { text: '$dispatch', link: '/properties/dispatch' },
+  { text: '$id', link: '/properties/id' }
 ]
 
 const propertiesMS = [
-  { text: 'Gambaran Keseluruhan', link: '/ms/properties/' },
+  { text: 'Gambaran', link: '/ms/properties/' },
   { text: '$refs', link: '/ms/properties/refs' },
   { text: '$store', link: '/ms/properties/store' },
   { text: '$el', link: '/ms/properties/el' },
   { text: '$event', link: '/ms/properties/event' },
-  { text: '$dispatch', link: '/ms/properties/dispatch' }
+  { text: '$dispatch', link: '/ms/properties/dispatch' },
+  { text: '$id', link: '/ms/properties/id' }
 ]
 
 export default defineConfig({

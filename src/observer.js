@@ -15,6 +15,8 @@ export function setupObserver() {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
                 if (node.nodeType === 1) {
+                    if (node.__ssScope) return;
+                    
                     // Check if node or any ancestor already has scope
                     let current = node;
                     let parentScope = null;

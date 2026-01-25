@@ -1,409 +1,603 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SenangStart Actions - Demo</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e4e4e7;
-            min-height: 100vh;
-            padding: 2rem;
-        }
-        
-        h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(90deg, #2563EB, #1d4ed8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-        
-        .subtitle {
-            text-align: center;
-            color: #a1a1aa;
-            margin-bottom: 2rem;
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-        }
-        
-        .card h2 {
-            font-size: 1.1rem;
-            color: #2563EB;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .card h2::before {
-            content: '✦';
-        }
-        
-        button {
-            background: linear-gradient(135deg, #2563EB, #1d4ed8);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        input[type="text"],
-        input[type="number"],
-        select {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #e4e4e7;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            font-size: 0.9rem;
-            width: 100%;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        
-        input:focus,
-        select:focus {
-            border-color: #2563EB;
-        }
-        
-        .counter-display {
-            font-size: 3rem;
-            font-weight: 700;
-            text-align: center;
-            padding: 1rem;
-            color: #2563EB;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-        }
-        
-        .toggle-content {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(37, 99, 235, 0.1);
-            border-radius: 0.5rem;
-            border: 1px solid rgba(37, 99, 235, 0.2);
-        }
-        
-        /* Transition classes for ss-transition */
-        .ss-enter-active,
-        .ss-leave-active {
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        
-        .ss-enter-from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        
-        .ss-enter-to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .ss-leave-from {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .ss-leave-to {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        
-        .list-item {
-            padding: 0.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            margin: 0.25rem 0;
-            border-radius: 0.25rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .binding-demo {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .label {
-            font-size: 0.8rem;
-            color: #a1a1aa;
-            margin-bottom: 0.25rem;
-        }
-        
-        .preview {
-            padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 0.5rem;
-            font-family: monospace;
-            font-size: 0.85rem;
-            word-break: break-all;
-        }
-        
-        .greeting {
-            font-size: 1.25rem;
-            text-align: center;
-            padding: 1rem;
-        }
-        
-        .store-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #2563EB, #1d4ed8);
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-        }
-        
-        .effect-log {
-            font-family: monospace;
-            font-size: 0.75rem;
-            color: #a1a1aa;
-            margin-top: 0.5rem;
-        }
-        
-        .hidden { display: none; }
-        .flex { display: flex; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #e4e4e7;
+        min-height: 100vh;
+        padding: 2rem;
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #2563eb, #1d4ed8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #a1a1aa;
+        margin-bottom: 2rem;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        backdrop-filter: blur(10px);
+      }
+
+      .card h2 {
+        font-size: 1.1rem;
+        color: #2563eb;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .card h2::before {
+        content: "✦";
+      }
+
+      button {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      input[type="text"],
+      input[type="number"],
+      select {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #e4e4e7;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.9rem;
+        width: 100%;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      input:focus,
+      select:focus {
+        border-color: #2563eb;
+      }
+
+      .counter-display {
+        font-size: 3rem;
+        font-weight: 700;
+        text-align: center;
+        padding: 1rem;
+        color: #2563eb;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+      }
+
+      .toggle-content {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: rgba(37, 99, 235, 0.1);
+        border-radius: 0.5rem;
+        border: 1px solid rgba(37, 99, 235, 0.2);
+      }
+
+      /* Transition classes for ss-transition */
+      .ss-enter-active,
+      .ss-leave-active {
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+
+      .ss-enter-from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      .ss-enter-to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .ss-leave-from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .ss-leave-to {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      .list-item {
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        margin: 0.25rem 0;
+        border-radius: 0.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .binding-demo {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .label {
+        font-size: 0.8rem;
+        color: #a1a1aa;
+        margin-bottom: 0.25rem;
+      }
+
+      .preview {
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 0.5rem;
+        font-family: monospace;
+        font-size: 0.85rem;
+        word-break: break-all;
+      }
+
+      .greeting {
+        font-size: 1.25rem;
+        text-align: center;
+        padding: 1rem;
+      }
+
+      .store-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+      }
+
+      .effect-log {
+        font-family: monospace;
+        font-size: 0.75rem;
+        color: #a1a1aa;
+        margin-top: 0.5rem;
+      }
+
+      .hidden {
+        display: none;
+      }
+      .flex {
+        display: flex;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>SenangStart Actions</h1>
     <p class="subtitle">Declarative UI framework for humans and AI agents</p>
     <p class="subtitle" ss-cloak>Loading...</p>
 
     <div class="grid">
-        
-        <!-- Counter Demo -->
-        <div class="card" ss-data="{ count: 0 }" ss-describe="Simple counter demonstrating ss-text and ss-on:click">
-            <h2>Counter</h2>
-            <div class="counter-display" ss-text="count">0</div>
-            <div class="btn-group">
-                <button ss-on:click="count--">- Decrease</button>
-                <button ss-on:click="count = 0">Reset</button>
-                <button ss-on:click="count++">+ Increase</button>
-            </div>
-            <div class="effect-log" ss-effect="console.log('Count changed:', count)">
-                <span ss-text="'Effect: count is ' + count"></span>
-            </div>
+      <!-- Counter Demo -->
+      <div
+        class="card"
+        ss-data="{ count: 0 }"
+        ss-describe="Simple counter demonstrating ss-text and ss-on:click"
+      >
+        <h2>Counter</h2>
+        <div class="counter-display" ss-text="count">0</div>
+        <div class="btn-group">
+          <button ss-on:click="count--">- Decrease</button>
+          <button ss-on:click="count = 0">Reset</button>
+          <button ss-on:click="count++">+ Increase</button>
         </div>
+        <div
+          class="effect-log"
+          ss-effect="console.log('Count changed:', count)"
+        >
+          <span ss-text="'Effect: count is ' + count"></span>
+        </div>
+      </div>
 
-        <!-- Toggle Demo -->
-        <div class="card" ss-data="{ open: false }">
-            <h2>Toggle with Transition</h2>
-            <button ss-on:click="open = !open" ss-text="open ? 'Hide Content' : 'Show Content'">
-                Show Content
+      <!-- Toggle Demo -->
+      <div class="card" ss-data="{ open: false }">
+        <h2>Toggle with Transition</h2>
+        <button
+          ss-on:click="open = !open"
+          ss-text="open ? 'Hide Content' : 'Show Content'"
+        >
+          Show Content
+        </button>
+        <div
+          class="toggle-content"
+          ss-show="open"
+          ss-transition.duration.500ms.scale.90.opacity.0
+        >
+          <p>✨ This content fades in and out with CSS transitions!</p>
+          <p style="margin-top: 0.5rem; color: #a1a1aa; font-size: 0.85rem">
+            Using ss-show with ss-transition modifiers:
+            .duration.500ms.scale.90.opacity.0
+          </p>
+        </div>
+      </div>
+
+      <!-- Advanced Transition Demo -->
+      <div class="card" ss-data="{ show: false }">
+        <h2>Advanced Transitions</h2>
+        <button ss-on:click="show = !show" ss-text="show ? 'Hide' : 'Show'">
+          Show
+        </button>
+        <div style="margin-top: 1rem; position: relative; height: 60px">
+          <div
+            ss-show="show"
+            style="padding: 1rem; background: #059669; border-radius: 0.5rem"
+            ss-transition:enter.duration.500ms.delay.200ms.easing.ease-out
+            ss-transition:leave.duration.300ms.opacity.0.scale.75
+          >
+            <p>🚀 Enter: 500ms + 200ms delay</p>
+            <p>📉 Leave: 300ms + scale(.75)</p>
+          </div>
+        </div>
+        <div class="preview" style="margin-top: 0.5rem; font-size: 0.75rem">
+          ss-transition:enter.duration.500ms.delay.200ms.easing.ease-out<br />
+          ss-transition:leave.duration.300ms.opacity.0.scale.75
+        </div>
+      </div>
+
+      <!-- Two-way Binding Demo -->
+      <div class="card" ss-data="{ name: '', email: '' }">
+        <h2>Two-way Binding (ss-model)</h2>
+        <div class="binding-demo">
+          <div>
+            <div class="label">Your Name</div>
+            <input type="text" ss-model="name" placeholder="Enter your name" />
+          </div>
+          <div>
+            <div class="label">Your Email</div>
+            <input
+              type="text"
+              ss-model="email"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div class="preview">
+            <span
+              ss-text="name ? 'Hello, ' + name + '!' : 'Enter your name above...'"
+            ></span>
+            <br />
+            <span ss-text="email ? '📧 ' + email : ''"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Class Binding -->
+      <div class="card" ss-data="{ active: false, size: 'medium' }">
+        <h2>Attribute Binding (ss-bind)</h2>
+        <div class="binding-demo">
+          <label
+            style="
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              cursor: pointer;
+            "
+          >
+            <input type="checkbox" ss-model="active" />
+            <span>Active State</span>
+          </label>
+          <select ss-model="size">
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+          <div class="preview">
+            <span
+              ss-bind:style="'font-size: ' + (size === 'small' ? '0.8em' : size === 'large' ? '1.5em' : '1em')"
+              ss-bind:class="active ? 'store-badge' : ''"
+              ss-text="'Size: ' + size + (active ? ' (Active!)' : '')"
+            >
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- List Rendering Demo -->
+      <div
+        class="card"
+        ss-data="{ items: ['Apple', 'Banana', 'Cherry'], newItem: '' }"
+      >
+        <h2>List Rendering (ss-for)</h2>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem">
+          <input
+            type="text"
+            ss-model="newItem"
+            placeholder="Add new item..."
+            ss-on:keyup.enter="if(newItem.trim()) { items.push(newItem); newItem = '' }"
+          />
+          <button
+            ss-on:click="if(newItem.trim()) { items.push(newItem); newItem = '' }"
+          >
+            Add
+          </button>
+        </div>
+        <div>
+          <template ss-for="(item, i) in items">
+            <div class="list-item">
+              <span ss-text="(i + 1) + '. ' + item"></span>
+              <button
+                ss-on:click="items.splice(i, 1)"
+                style="padding: 0.25rem 0.5rem; font-size: 0.75rem"
+              >
+                ×
+              </button>
+            </div>
+          </template>
+        </div>
+        <div class="effect-log" ss-text="'Total items: ' + items.length"></div>
+      </div>
+
+      <!-- Conditional Rendering Demo -->
+      <div class="card" ss-data="{ role: 'user' }">
+        <h2>Conditional Rendering (ss-if)</h2>
+        <div class="binding-demo">
+          <select ss-model="role">
+            <option value="guest">Guest</option>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+
+          <template ss-if="role === 'guest'">
+            <div class="preview">👋 Welcome, Guest! Please sign in.</div>
+          </template>
+
+          <template ss-if="role === 'user'">
+            <div class="preview">👤 Welcome back, User!</div>
+          </template>
+
+          <template ss-if="role === 'admin'">
+            <div class="preview" style="background: rgba(37, 99, 235, 0.2)">
+              🔑 Admin Panel Access Granted
+              <button style="margin-top: 0.5rem; background: #dc2626">
+                Delete Database
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Refs Demo -->
+      <div class="card" ss-data="{}">
+        <h2>Element References ($refs)</h2>
+        <div class="binding-demo">
+          <input
+            type="text"
+            ss-ref="myInput"
+            placeholder="Focus me with the button!"
+          />
+          <div class="btn-group">
+            <button ss-on:click="$refs.myInput.focus()">Focus Input</button>
+            <button ss-on:click="$refs.myInput.value = 'Hello!'">
+              Set Value
             </button>
-            <div class="toggle-content" ss-show="open" ss-transition>
-                <p>✨ This content fades in and out with CSS transitions!</p>
-                <p style="margin-top: 0.5rem; color: #a1a1aa; font-size: 0.85rem;">
-                    Using ss-show with ss-transition for smooth animations.
-                </p>
-            </div>
+            <button ss-on:click="$refs.myInput.value = ''">Clear</button>
+          </div>
         </div>
+      </div>
 
-        <!-- Two-way Binding Demo -->
-        <div class="card" ss-data="{ name: '', email: '' }">
-            <h2>Two-way Binding (ss-model)</h2>
-            <div class="binding-demo">
-                <div>
-                    <div class="label">Your Name</div>
-                    <input type="text" ss-model="name" placeholder="Enter your name">
-                </div>
-                <div>
-                    <div class="label">Your Email</div>
-                    <input type="text" ss-model="email" placeholder="Enter your email">
-                </div>
-                <div class="preview">
-                    <span ss-text="name ? 'Hello, ' + name + '!' : 'Enter your name above...'"></span>
-                    <br>
-                    <span ss-text="email ? '📧 ' + email : ''"></span>
-                </div>
-            </div>
+      <!-- Global Store Demo -->
+      <div class="card" ss-data="{}">
+        <h2>Global Store ($store)</h2>
+        <div class="binding-demo">
+          <div class="preview">
+            <span class="store-badge" ss-text="$store.app.name"></span>
+            <span
+              style="margin-left: 0.5rem"
+              ss-text="'v' + $store.app.version"
+            ></span>
+          </div>
+          <p style="font-size: 0.85rem; color: #a1a1aa">
+            Notifications:
+            <span ss-text="$store.notifications.items.length"></span>
+          </p>
+          <button
+            ss-on:click="$store.notifications.add('New notification at ' + new Date().toLocaleTimeString())"
+          >
+            Add Notification
+          </button>
+          <div style="margin-top: 0.5rem">
+            <template ss-for="msg in $store.notifications.items">
+              <div
+                class="list-item"
+                style="font-size: 0.8rem"
+                ss-text="msg"
+              ></div>
+            </template>
+          </div>
         </div>
+      </div>
 
-        <!-- Dynamic Class Binding -->
-        <div class="card" ss-data="{ active: false, size: 'medium' }">
-            <h2>Attribute Binding (ss-bind)</h2>
-            <div class="binding-demo">
-                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                    <input type="checkbox" ss-model="active">
-                    <span>Active State</span>
-                </label>
-                <select ss-model="size">
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                </select>
-                <div class="preview">
-                    <span ss-bind:style="'font-size: ' + (size === 'small' ? '0.8em' : size === 'large' ? '1.5em' : '1em')"
-                          ss-bind:class="active ? 'store-badge' : ''"
-                          ss-text="'Size: ' + size + (active ? ' (Active!)' : '')">
-                    </span>
-                </div>
-            </div>
+      <!-- Custom Events Demo -->
+      <div
+        class="card"
+        ss-data="{ lastEvent: 'None yet' }"
+        ss-on:notify="lastEvent = $event.detail.message"
+      >
+        <h2>Custom Events ($dispatch)</h2>
+        <div class="binding-demo">
+          <button
+            ss-on:click="$dispatch('notify', { message: 'Button clicked at ' + new Date().toLocaleTimeString() })"
+          >
+            Dispatch Event
+          </button>
+          <div class="preview">
+            <span class="label">Last Event:</span><br />
+            <span ss-text="lastEvent"></span>
+          </div>
         </div>
+      </div>
 
-        <!-- List Rendering Demo -->
-        <div class="card" ss-data="{ items: ['Apple', 'Banana', 'Cherry'], newItem: '' }">
-            <h2>List Rendering (ss-for)</h2>
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                <input type="text" ss-model="newItem" placeholder="Add new item..." ss-on:keyup.enter="if(newItem.trim()) { items.push(newItem); newItem = '' }">
-                <button ss-on:click="if(newItem.trim()) { items.push(newItem); newItem = '' }">Add</button>
-            </div>
-            <div>
-                <template ss-for="(item, i) in items">
-                    <div class="list-item">
-                        <span ss-text="(i + 1) + '. ' + item"></span>
-                        <button ss-on:click="items.splice(i, 1)" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">×</button>
-                    </div>
-                </template>
-            </div>
-            <div class="effect-log" ss-text="'Total items: ' + items.length"></div>
+      <!-- ss-id Demo -->
+      <div class="card" ss-data="{}" ss-id="['input-id']">
+        <h2>Scoped IDs (ss-id)</h2>
+        <div class="binding-demo">
+          <div>
+            <label ss-bind:for="$id('input-id')" class="label"
+              >Scoped Label</label
+            >
+            <input
+              ss-bind:id="$id('input-id')"
+              type="text"
+              placeholder="I have a unique ID"
+            />
+          </div>
+          <div>
+            <label ss-bind:for="$id('input-id', 'hint')" class="label"
+              >Hint Label</label
+            >
+            <input
+              ss-bind:id="$id('input-id', 'hint')"
+              type="text"
+              placeholder="I have a unique ID with key"
+            />
+          </div>
+          <div class="preview">
+            Generated ID: <span ss-text="$id('input-id')"></span>
+          </div>
         </div>
+      </div>
 
-        <!-- Conditional Rendering Demo -->
-        <div class="card" ss-data="{ role: 'user' }">
-            <h2>Conditional Rendering (ss-if)</h2>
-            <div class="binding-demo">
-                <select ss-model="role">
-                    <option value="guest">Guest</option>
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
-                
-                <template ss-if="role === 'guest'">
-                    <div class="preview">👋 Welcome, Guest! Please sign in.</div>
-                </template>
-                
-                <template ss-if="role === 'user'">
-                    <div class="preview">👤 Welcome back, User!</div>
-                </template>
-                
-                <template ss-if="role === 'admin'">
-                    <div class="preview" style="background: rgba(37, 99, 235, 0.2);">
-                        🔑 Admin Panel Access Granted
-                        <button style="margin-top: 0.5rem; background: #dc2626;">Delete Database</button>
-                    </div>
-                </template>
+      <!-- Teleport Demo -->
+      <div class="card" ss-data="{ showModal: false }">
+        <h2>Teleport (ss-teleport)</h2>
+        <button ss-on:click="showModal = true">Open Modal</button>
+        <p style="font-size: 0.85rem; color: #a1a1aa; margin-top: 0.5rem">
+          Clicking opens a modal teleported to document body.
+        </p>
+
+        <template ss-teleport="body">
+          <div
+            ss-show="showModal"
+            class="modal-backdrop"
+            style="
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 100;
+            "
+            ss-transition.opacity.300ms
+          >
+            <div
+              class="modal-content"
+              style="
+                background: #1f2937;
+                padding: 2rem;
+                border-radius: 1rem;
+                color: white;
+                min-width: 300px;
+                max-width: 90%;
+                box-shadow:
+                  0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                  0 10px 10px -5px rgba(0, 0, 0, 0.04);
+              "
+              ss-transition.scale.90.duration.300ms
+            >
+              <h3
+                style="margin-bottom: 1rem; font-size: 1.5rem; color: #2563eb"
+              >
+                Teleported Modal
+              </h3>
+              <p style="margin-bottom: 1.5rem; line-height: 1.5">
+                This content is teleported to the &lt;body&gt; tag, avoiding
+                z-index and overflow issues!
+              </p>
+              <div style="display: flex; justify-content: flex-end">
+                <button ss-on:click="showModal = false">Close Modal</button>
+              </div>
             </div>
-        </div>
-
-        <!-- Refs Demo -->
-        <div class="card" ss-data="{}">
-            <h2>Element References ($refs)</h2>
-            <div class="binding-demo">
-                <input type="text" ss-ref="myInput" placeholder="Focus me with the button!">
-                <div class="btn-group">
-                    <button ss-on:click="$refs.myInput.focus()">Focus Input</button>
-                    <button ss-on:click="$refs.myInput.value = 'Hello!'">Set Value</button>
-                    <button ss-on:click="$refs.myInput.value = ''">Clear</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Global Store Demo -->
-        <div class="card" ss-data="{}">
-            <h2>Global Store ($store)</h2>
-            <div class="binding-demo">
-                <div class="preview">
-                    <span class="store-badge" ss-text="$store.app.name"></span>
-                    <span style="margin-left: 0.5rem;" ss-text="'v' + $store.app.version"></span>
-                </div>
-                <p style="font-size: 0.85rem; color: #a1a1aa;">
-                    Notifications: <span ss-text="$store.notifications.items.length"></span>
-                </p>
-                <button ss-on:click="$store.notifications.add('New notification at ' + new Date().toLocaleTimeString())">
-                    Add Notification
-                </button>
-                <div style="margin-top: 0.5rem;">
-                    <template ss-for="msg in $store.notifications.items">
-                        <div class="list-item" style="font-size: 0.8rem;" ss-text="msg"></div>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <!-- Custom Events Demo -->
-        <div class="card" ss-data="{ lastEvent: 'None yet' }" ss-on:notify="lastEvent = $event.detail.message">
-            <h2>Custom Events ($dispatch)</h2>
-            <div class="binding-demo">
-                <button ss-on:click="$dispatch('notify', { message: 'Button clicked at ' + new Date().toLocaleTimeString() })">
-                    Dispatch Event
-                </button>
-                <div class="preview">
-                    <span class="label">Last Event:</span><br>
-                    <span ss-text="lastEvent"></span>
-                </div>
-            </div>
-        </div>
-
+          </div>
+        </template>
+      </div>
     </div>
 
     <!-- Global Store Registration -->
     <script src="../dist/senangstart-actions.js"></script>
     <script>
-        // Register global stores
-        SenangStart.store('app', {
-            name: 'SenangStart',
-            version: '0.1.0'
-        });
+      // Register global stores
+      SenangStart.store("app", {
+        name: "SenangStart",
+        version: "0.1.0",
+      });
 
-        SenangStart.store('notifications', {
-            items: [],
-            add(msg) {
-                this.items.push(msg);
-            }
-        });
+      SenangStart.store("notifications", {
+        items: [],
+        add(msg) {
+          this.items.push(msg);
+        },
+      });
 
-        // Register reusable data component
-        SenangStart.data('dropdown', () => ({
-            open: false,
-            toggle() {
-                this.open = !this.open;
-            }
-        }));
+      // Register reusable data component
+      SenangStart.data("dropdown", () => ({
+        open: false,
+        toggle() {
+          this.open = !this.open;
+        },
+      }));
     </script>
-</body>
+  </body>
 </html>

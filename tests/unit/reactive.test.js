@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createReactive, runEffect, scheduleUpdate, pendingEffects } from '../src/reactive.js';
+import { createReactive, runEffect, scheduleUpdate, pendingEffects } from '../../src/reactive.js';
 
 describe('createReactive', () => {
     it('creates a reactive proxy from an object', () => {

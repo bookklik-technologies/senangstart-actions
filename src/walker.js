@@ -6,7 +6,7 @@
  */
 
 import { createReactive } from './reactive.js';
-import { attributeHandlers, handleBind, handleEvent, handleFor, handleIf, setWalkFunction } from './handlers/index.js';
+import { attributeHandlers, handleBind, handleEvent, handleFor, handleIf, handleTeleport, setWalkFunction } from './handlers/index.js';
 
 // Store references
 let registeredDataFactories = {};
@@ -60,6 +60,49 @@ export function walk(el, parentScope = null) {
         // Store scope on element for MutationObserver
         el.__ssScope = scope;
     }
+
+    // Handle ss-id (create ID scope)
+    if (el.hasAttribute('ss-id')) {
+        const idName = el.getAttribute('ss-id').trim() || 'default';
+        const idNameArray = idName.startsWith('[') ? new Function(`return ${idName}`)() : [idName];
+        
+        // Ensure scope exists (if no ss-data was present)
+        if (!scope) {
+           scope = parentScope ? { ...parentScope } : { data: {}, $refs: {}, $store: stores };
+        } else {
+             // Create a new scope object inheriting from the current one to strictly scope the IDs?
+             // Or just augment the current scope? 
+             // Ideally we want to attach the id info to the scope chain.
+             // Let's create a child scope if we already have one, or just use it.
+             scope = { ...scope };
+        }
+        
+        // Initialize ID registry in scope if not present
+        if (!scope.$idRoots) scope.$idRoots = {};
+        
+        // For each name in ss-id, generate a unique ID
+        // Actually, ss-id declaratively says "this is a root for IDs of type X"
+        // Alpine: x-id="['text-input']"
+        // And then $id('text-input') returns "text-input-1" (stable for this instance)
+        
+        (Array.isArray(idNameArray) ? idNameArray : [idNameArray]).forEach(name => {
+             // Find next available ID for this name globally or within some context?
+             // Alpine uses a global incrementor but scoped retrieval.
+             // We need to store the "id state" on the element or scope.
+             if (!scope.$idRoots[name]) {
+                 // We need a global counter for 'name' to ensure uniqueness across the page?
+                 // Or just random? Alpine makes them stable if possible.
+                 // Simple implementation:
+                 if (!window.__ssIdCounts) window.__ssIdCounts = {};
+                 if (!window.__ssIdCounts[name]) window.__ssIdCounts[name] = 0;
+                 const id = ++window.__ssIdCounts[name];
+                 scope.$idRoots[name] = id;
+             }
+        });
+        
+        // Update scope on element since we modified/forked it
+        el.__ssScope = scope;
+    }
     
     // If no scope, skip processing directives
     if (!scope) {
@@ -78,6 +121,12 @@ export function walk(el, parentScope = null) {
     if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-if')) {
         handleIf(el, el.getAttribute('ss-if'), scope);
         return; // ss-if handles its own children
+    }
+
+    // Handle ss-teleport (must be on template element)
+    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-teleport')) {
+        handleTeleport(el, el.getAttribute('ss-teleport'), scope);
+        return; 
     }
     
     // Process all ss-* attributes

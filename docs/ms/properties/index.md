@@ -11,6 +11,7 @@ SenangStart Actions menyediakan sifat khas yang tersedia dalam sebarang skop `ss
 | [$el](/ms/properties/el) | Rujukan elemen semasa |
 | [$event](/ms/properties/event) | Objek peristiwa natif |
 | [$dispatch](/ms/properties/dispatch) | Hantar peristiwa tersuai |
+| [$id](/ms/properties/id) | Jana ID berskop |
 
 ## Rujukan Pantas
 

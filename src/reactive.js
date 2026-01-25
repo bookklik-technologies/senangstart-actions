@@ -147,6 +147,12 @@ function createReactiveObject(obj, onMutate, subscribers) {
             
             scheduleUpdate(onMutate);
             return true;
+        },
+
+        ownKeys(target) {
+            return Reflect.ownKeys(target).filter(key => 
+                key !== '__subscribers' && key !== '__isReactive'
+            );
         }
     };
     

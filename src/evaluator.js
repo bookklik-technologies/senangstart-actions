@@ -39,6 +39,12 @@ export function createEvaluator(expression, scope, element) {
         },
         $nextTick: (fn) => {
             queueMicrotask(fn);
+        },
+        $id: (name, key) => {
+            if (scope.$idRoots && scope.$idRoots[name]) {
+                return `${name}-${scope.$idRoots[name]}${key ? `-${key}` : ''}`;
+            }
+            return undefined;
         }
     };
     

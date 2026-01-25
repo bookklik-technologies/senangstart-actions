@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createEvaluator, createExecutor } from '../src/evaluator.js';
-import { createReactive } from '../src/reactive.js';
+import { createEvaluator, createExecutor } from '../../src/evaluator.js';
+import { createReactive } from '../../src/reactive.js';
 
 // Helper to create a mock scope
 function createMockScope(data = {}) {

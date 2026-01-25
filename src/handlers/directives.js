@@ -29,8 +29,8 @@ export function handleFor(templateEl, expr, scope) {
         return;
     }
     
-    const itemName = match[1] || match[3];
-    const indexName = match[2] || 'index';
+    const itemName = (match[1] || match[3]).trim();
+    const indexName = (match[2] || 'index').trim();
     const arrayExpr = match[4];
     
     const parent = templateEl.parentNode;
@@ -76,6 +76,7 @@ export function handleFor(templateEl, expr, scope) {
             nodes.forEach(node => {
                 parent.insertBefore(node, anchor);
                 currentNodes.push(node);
+                node.__ssScope = itemScope;
                 if (walkFn) walkFn(node, itemScope);
             });
         });
@@ -116,4 +117,39 @@ export function handleIf(templateEl, expr, scope) {
     };
     
     runEffect(update);
+}
+
+/**
+ * Handle ss-teleport directive
+ */
+export function handleTeleport(templateEl, expr, scope) {
+    const targetSelector = expr;
+    let target = document.querySelector(targetSelector);
+    
+    // Create anchor in original location
+    const anchor = document.createComment(`ss-teleport: ${targetSelector}`);
+    templateEl.parentNode.insertBefore(anchor, templateEl);
+    templateEl.remove();
+    
+    // If target doesn't exist yet, we could use MutationObserver on body to wait for it.
+    // For now, mirroring Alpine's behavior: if it doesn't exist, it warns and does nothing? 
+    // Or maybe we should retry. Let's start with immediate check.
+    if (!target) {
+        console.warn(`[SenangStart] ss-teleport target not found: ${targetSelector}`);
+        return;
+    }
+    
+    // Clone content
+    const clone = templateEl.content.cloneNode(true);
+    const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
+    
+    // Append to target
+    nodes.forEach(node => {
+        target.appendChild(node);
+        if (walkFn) walkFn(node, scope);
+    });
+    
+    // Cleanup when original scope/component is destroyed?
+    // Currently SenangStart doesn't have a clear "destroy" signal for the root unless removed.
+    // We'll rely on the nodes being in the DOM.
 }

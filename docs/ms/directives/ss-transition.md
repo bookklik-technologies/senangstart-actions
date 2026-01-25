@@ -1,116 +1,90 @@
 # ss-transition
 
-Arahan `ss-transition` membolehkan transisi CSS apabila elemen ditunjukkan atau disembunyikan dengan `ss-show`. Ia menggunakan kelas transisi yang boleh anda gaya dengan CSS.
+Arahan `ss-transition` membolehkan anda menggunakan transisi CSS kepada elemen apabila ia masuk atau keluar dari DOM (ditogol melalui `ss-show` atau `ss-if`).
 
 ## Sintaks
 
 ```html
-<element ss-show="condition" ss-transition></element>
-```
+<!-- Asas -->
+<div ss-show="open" ss-transition></div>
 
-## Cara Ia Berfungsi
+<!-- Dengan Pengubahsuai -->
+<div ss-show="open" ss-transition.duration.500ms.scale.90></div>
 
-Apabila elemen dengan `ss-transition` ditunjukkan atau disembunyikan, SenangStart menggunakan kelas berikut:
-
-### Masuk (showing)
-- `ss-enter-from` - Keadaan awal sebelum masuk
-- `ss-enter-active` - Digunakan sepanjang fasa masuk
-- `ss-enter-to` - Keadaan akhir selepas masuk
-
-### Keluar (hiding)
-- `ss-leave-from` - Keadaan awal sebelum keluar
-- `ss-leave-active` - Digunakan sepanjang fasa keluar
-- `ss-leave-to` - Keadaan akhir selepas keluar
-
-## Contoh Transisi
-
-### Pudar
-
-```html
-<style>
-  .ss-enter-active,
-  .ss-leave-active {
-    transition: opacity 0.3s ease;
-  }
-  
-  .ss-enter-from,
-  .ss-leave-to {
-    opacity: 0;
-  }
-</style>
-
-<div ss-data="{ show: true }">
-  <button ss-on:click="show = !show">Togol</button>
-  <div ss-show="show" ss-transition>
-    Kandungan ini memudar masuk dan keluar
-  </div>
+<!-- Kawalan Terperinci -->
+<div ss-show="open" 
+     ss-transition:enter.duration.200ms.ease-out
+     ss-transition:leave.duration.100ms.ease-in>
 </div>
 ```
 
-### Gelongsor Turun
+## Pengubahsuai (Modifiers)
+
+SenangStart menyediakan sintaks ringkas untuk mengkonfigurasi transisi secara terus dalam atribut.
+
+| Pengubahsuai | Penerangan | Contoh |
+| :--- | :--- | :--- |
+| `.duration.{ms}` | Tetapkan tempoh transisi | `.duration.300ms`, `.duration.2s` |
+| `.delay.{ms}` | Tetapkan lengah masa transisi | `.delay.100ms` |
+| `.opacity.{0-100}` | Tetapkan kelegapan mula/akhir | `.opacity.0` (pudar dari 0) |
+| `.scale.{0-100}` | Tetapkan skala mula/akhir | `.scale.90` (skala naik dari 0.9) |
+| `.easing.{name}` | Tetapkan fungsi masa | `.easing.ease-out`, `.easing.linear` |
+
+### Contoh Pengubahsuai
 
 ```html
-<style>
-  .ss-enter-active,
-  .ss-leave-active {
-    transition: all 0.3s ease;
-  }
-  
-  .ss-enter-from,
-  .ss-leave-to {
+<div ss-show="open" 
+     ss-transition.duration.300ms.opacity.0.scale.80.easing.ease-out>
+  Saya akan pudar masuk, membesar, dan keluar dengan lancar!
+</div>
+```
+
+Ini secara efektif menetapkan:
+- **Masuk**: Bermula pada `opacity: 0`, `transform: scale(0.8)`. Transisi ke `1` / `1.0` selama `300ms`.
+- **Keluar**: Transisi dari `1` / `1.0` kembali ke `opacity: 0`, `transform: scale(0.8)` selama `300ms`.
+
+## Fasa Khusus
+
+Anda boleh menyesuaikan fasa *Masuk* dan *Keluar* secara berasingan menggunakan `ss-transition:enter` dan `ss-transition:leave`.
+
+```html
+<div ss-show="open"
+     ss-transition:enter.duration.500ms.delay.200ms
+     ss-transition:leave.duration.100ms>
+     
+    Saya masuk perlahan selepas lengah masa, tapi keluar dengan pantas.
+</div>
+```
+
+## Transisi Berasaskan Kelas
+
+Jika anda lebih suka menggunakan kelas CSS (serasi dengan konvensyen Vue/Alpine), `ss-transition` tanpa pengubahsuai (atau bersamanya) menggunakan kelas berikut sepanjang kitaran hayat:
+
+| Kelas | Digunakan Apabila | Penerangan |
+| :--- | :--- | :--- |
+| `ss-enter-from` | Bingkai permulaan masuk | Keadaan awal (cth: `opacity: 0`) |
+| `ss-enter-active`| Semasa fasa masuk | Sifat transisi (cth: `transition: opacity 200ms`) |
+| `ss-enter-to` | Bingkai akhir masuk | Keadaan akhir (cth: `opacity: 1`) |
+| `ss-leave-from` | Bingkai permulaan keluar | Keadaan awal sebelum keluar |
+| `ss-leave-active`| Semasa fasa keluar | Sifat transisi |
+| `ss-leave-to` | Bingkai akhir keluar | Keadaan akhir selepas keluar |
+
+**Nota**: Jika anda menggunakan pengubahsuai seperti `.duration`, gaya inline akan mensimulasikan kelas `*-active`, tetapi kelas `*-from` dan `*-to` masih ditogol untuk membantu anda menjejak keadaan.
+
+### Contoh CSS
+
+```css
+.ss-enter-active, .ss-leave-active {
+    transition: all 0.5s ease;
+}
+.ss-enter-from, .ss-leave-to {
     opacity: 0;
-    transform: translateY(-10px);
-  }
-</style>
+    transform: translateY(20px);
+}
 ```
-
-## Contoh Langsung
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Contoh ss-transition</title>
-  <style>
-    .accordion-content { overflow: hidden; }
-    .ss-enter-active, .ss-leave-active {
-      transition: all 0.3s ease;
-    }
-    .ss-enter-from, .ss-leave-to {
-      opacity: 0;
-      max-height: 0;
-    }
-    .accordion-item { border: 1px solid #ddd; margin: 0.5rem 0; }
-    .accordion-header { padding: 1rem; cursor: pointer; background: #f5f5f5; }
-    .accordion-body { padding: 1rem; }
-  </style>
-</head>
-<body>
-  <div ss-data="{ 
-    items: [
-      { title: 'Bahagian 1', content: 'Kandungan bahagian 1', open: false },
-      { title: 'Bahagian 2', content: 'Kandungan bahagian 2', open: false }
-    ]
-  }">
-    <template ss-for="item in items">
-      <div class="accordion-item">
-        <div class="accordion-header" ss-on:click="item.open = !item.open">
-          <span ss-text="item.title"></span>
-          <span ss-text="item.open ? '▲' : '▼'" style="float: right;"></span>
-        </div>
-        <div ss-show="item.open" ss-transition class="accordion-content">
-          <div class="accordion-body" ss-text="item.content"></div>
-        </div>
-      </div>
-    </template>
-  </div>
-
-  <script src="https://unpkg.com/@bookklik/senangstart-actions"></script>
-</body>
-</html>
+<div ss-show="open" ss-transition>
+   Kandungan menggunakan kelas CSS mudah
+</div>
 ```
-
-## Arahan Berkaitan
-
-- [ss-show](/ms/directives/ss-show) - Kawal keterlihatan
-- [ss-if](/ms/directives/ss-if) - Rendering bersyarat (tiada transisi)

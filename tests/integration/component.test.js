@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { walk, setReferences } from '../src/walker.js';
-import { createReactive } from '../src/reactive.js';
+import { walk, setReferences } from '../../src/walker.js';
+import { createReactive } from '../../src/reactive.js';
 
 describe('Integration Tests', () => {
     beforeEach(() => {

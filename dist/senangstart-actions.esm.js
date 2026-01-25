@@ -152,6 +152,12 @@ function createReactiveObject(obj, onMutate, subscribers) {
             
             scheduleUpdate(onMutate);
             return true;
+        },
+
+        ownKeys(target) {
+            return Reflect.ownKeys(target).filter(key => 
+                key !== '__subscribers' && key !== '__isReactive'
+            );
         }
     };
     
@@ -255,6 +261,12 @@ function createEvaluator(expression, scope, element) {
         },
         $nextTick: (fn) => {
             queueMicrotask(fn);
+        },
+        $id: (name, key) => {
+            if (scope.$idRoots && scope.$idRoots[name]) {
+                return `${name}-${scope.$idRoots[name]}${key ? `-${key}` : ''}`;
+            }
+            return undefined;
         }
     };
     
@@ -342,22 +354,138 @@ function createExecutor(expression, scope, element) {
 
 
 /**
+ * Parse transition configuration from element attributes
+ */
+function getTransitionConfig(el) {
+    const config = {
+        enter: { duration: 150, delay: 0, easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)', opacity: 1, scale: 1 },
+        leave: { duration: 150, delay: 0, easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)', opacity: 1, scale: 1 }
+    };
+    
+    const attrs = Array.from(el.attributes);
+    
+    attrs.forEach(attr => {
+        if (!attr.name.startsWith('ss-transition')) return;
+        
+        const parts = attr.name.split('.');
+        // parts[0] is 'ss-transition' or 'ss-transition:enter' or 'ss-transition:leave'
+        // parts[1...] are modifiers
+        
+        const mainPart = parts[0];
+        let phase = 'both'; // both, enter, leave
+        
+        if (mainPart === 'ss-transition:enter') phase = 'enter';
+        else if (mainPart === 'ss-transition:leave') phase = 'leave';
+        else if (mainPart !== 'ss-transition') return; // ignore other attrs
+        
+        const modifiers = parts.slice(1);
+        
+        const applyModifier = (targetPhase) => {
+            const phaseConfig = config[targetPhase];
+            
+            for (let i = 0; i < modifiers.length; i++) {
+                const mod = modifiers[i];
+                const nextMod = modifiers[i + 1];
+                
+                if (mod === 'duration' && nextMod) {
+                    phaseConfig.duration = parseInt(nextMod.replace('ms', ''));
+                    i++;
+                } else if (mod === 'delay' && nextMod) {
+                    phaseConfig.delay = parseInt(nextMod.replace('ms', ''));
+                    i++;
+                } else if (mod === 'opacity' && nextMod) {
+                     phaseConfig.opacity = parseInt(nextMod) / 100;
+                     i++;
+                } else if (mod === 'scale' && nextMod) {
+                     phaseConfig.scale = parseInt(nextMod) / 100;
+                     i++;
+                } else if (mod === 'easing' && nextMod) {
+                     phaseConfig.easing = nextMod; // simple support for ease-in-out, etc?
+                     // If it's a known css easing identifier it works, otherwise might process it.
+                     // The user request example: ss-transition.easing.ease-in-out
+                     i++;
+                }
+            }
+        };
+        
+        if (phase === 'both') {
+            applyModifier('enter');
+            applyModifier('leave');
+        } else {
+            applyModifier(phase);
+        }
+    });
+    
+    return config;
+}
+
+/**
  * Handle ss-transition animations
  */
 function handleTransition(el, show, originalDisplay) {
+    const config = getTransitionConfig(el); // Always parse fresh
+    
     if (show) {
         // Enter transition
-        el.classList.add('ss-enter-from');
-        el.classList.add('ss-enter-active');
+        // Cancel any pending leave transition
+        // el.classList.remove('ss-leave-active', 'ss-leave-to'); // Actually handled by logic flow usually
+        
         el.style.display = originalDisplay;
         
+        // Initial state
+        el.style.transition = 'none'; // reset to apply initial props
+        
+        const { duration, delay, easing, opacity, scale } = config.enter;
+        
+        // Helper to set transition CSS
+        const setTransition = () => {
+             el.style.transitionProperty = 'opacity, transform';
+             el.style.transitionDuration = `${duration}ms`;
+             el.style.transitionTimingFunction = easing;
+             el.style.transitionDelay = `${delay}ms`;
+        };
+
+        // Start state (hidden-ish)
+        if (opacity < 1) el.style.opacity = 0; // standard fade in
+        if (scale < 1) el.style.transform = `scale(${scale})`; // standard scale in
+        
+        // If not using opacity/scale mods, specific classes might handle it?
+        // Prioritize modifiers if they dictate change.
+        // Users might mix classes and modifiers. 
+        // If modifiers are present involving opacity/scale, we inline styles.
+        
+        // Also support standard class-based if no modifiers?
+        // The previous implementation added classes. We should KEEP that behavior for bw compat.
+        el.classList.add('ss-enter-from');
+        el.classList.add('ss-enter-active');
+        
+        // Force reflow
+        void el.offsetHeight;
+        
+        // Transition to end state
         requestAnimationFrame(() => {
+            setTransition();
+            
             el.classList.remove('ss-enter-from');
             el.classList.add('ss-enter-to');
+            
+            // Apply end inline styles
+            if (opacity < 1) el.style.opacity = 1;
+            if (scale < 1) el.style.transform = 'scale(1)';
         });
         
         const onEnd = () => {
             el.classList.remove('ss-enter-active', 'ss-enter-to');
+            
+            // Cleanup inline styles?
+            el.style.transition = '';
+            el.style.transitionProperty = '';
+            el.style.transitionDuration = '';
+            el.style.transitionTimingFunction = '';
+            el.style.transitionDelay = '';
+            el.style.opacity = '';
+            el.style.transform = '';
+            
             el.removeEventListener('transitionend', onEnd);
         };
         el.addEventListener('transitionend', onEnd);
@@ -366,14 +494,42 @@ function handleTransition(el, show, originalDisplay) {
         el.classList.add('ss-leave-from');
         el.classList.add('ss-leave-active');
         
+        // Initial state (fully visible)
+        el.style.transition = 'none';
+        
+        const { duration, delay, easing, opacity, scale } = config.leave;
+        
+        const setTransition = () => {
+             el.style.transitionProperty = 'opacity, transform';
+             el.style.transitionDuration = `${duration}ms`;
+             el.style.transitionTimingFunction = easing; // Should this be 'leave' easing?
+             el.style.transitionDelay = `${delay}ms`;
+        };
+        
+        // Force reflow
+        void el.offsetHeight;
+        
         requestAnimationFrame(() => {
+            setTransition();
+            
             el.classList.remove('ss-leave-from');
             el.classList.add('ss-leave-to');
+            
+            // Target state
+            if (opacity < 1) el.style.opacity = 0;
+            if (scale < 1) el.style.transform = `scale(${scale})`;
         });
         
         const onEnd = () => {
             el.style.display = 'none';
             el.classList.remove('ss-leave-active', 'ss-leave-to');
+            
+            // Cleanup
+            el.style.transition = '';
+            el.style.transitionProperty = '';
+            el.style.opacity = '';
+            el.style.transform = '';
+            
             el.removeEventListener('transitionend', onEnd);
         };
         el.addEventListener('transitionend', onEnd);
@@ -416,7 +572,11 @@ const attributeHandlers = {
             const evaluator = createEvaluator(expr, scope, el);
             const show = !!evaluator();
             
-            if (el.hasAttribute('ss-transition')) {
+            // Check for any transition attribute
+            const hasTransition = Array.from(el.attributes)
+                .some(attr => attr.name.startsWith('ss-transition'));
+            
+            if (hasTransition) {
                 handleTransition(el, show, originalDisplay);
             } else {
                 el.style.display = show ? originalDisplay : 'none';
@@ -640,8 +800,8 @@ function handleFor(templateEl, expr, scope) {
         return;
     }
     
-    const itemName = match[1] || match[3];
-    const indexName = match[2] || 'index';
+    const itemName = (match[1] || match[3]).trim();
+    const indexName = (match[2] || 'index').trim();
     const arrayExpr = match[4];
     
     const parent = templateEl.parentNode;
@@ -687,6 +847,7 @@ function handleFor(templateEl, expr, scope) {
             nodes.forEach(node => {
                 parent.insertBefore(node, anchor);
                 currentNodes.push(node);
+                node.__ssScope = itemScope;
                 if (walkFn) walkFn(node, itemScope);
             });
         });
@@ -727,6 +888,41 @@ function handleIf(templateEl, expr, scope) {
     };
     
     runEffect(update);
+}
+
+/**
+ * Handle ss-teleport directive
+ */
+function handleTeleport(templateEl, expr, scope) {
+    const targetSelector = expr;
+    let target = document.querySelector(targetSelector);
+    
+    // Create anchor in original location
+    const anchor = document.createComment(`ss-teleport: ${targetSelector}`);
+    templateEl.parentNode.insertBefore(anchor, templateEl);
+    templateEl.remove();
+    
+    // If target doesn't exist yet, we could use MutationObserver on body to wait for it.
+    // For now, mirroring Alpine's behavior: if it doesn't exist, it warns and does nothing? 
+    // Or maybe we should retry. Let's start with immediate check.
+    if (!target) {
+        console.warn(`[SenangStart] ss-teleport target not found: ${targetSelector}`);
+        return;
+    }
+    
+    // Clone content
+    const clone = templateEl.content.cloneNode(true);
+    const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
+    
+    // Append to target
+    nodes.forEach(node => {
+        target.appendChild(node);
+        if (walkFn) walkFn(node, scope);
+    });
+    
+    // Cleanup when original scope/component is destroyed?
+    // Currently SenangStart doesn't have a clear "destroy" signal for the root unless removed.
+    // We'll rely on the nodes being in the DOM.
 }
 
 /**
@@ -789,6 +985,49 @@ function walk(el, parentScope = null) {
         // Store scope on element for MutationObserver
         el.__ssScope = scope;
     }
+
+    // Handle ss-id (create ID scope)
+    if (el.hasAttribute('ss-id')) {
+        const idName = el.getAttribute('ss-id').trim() || 'default';
+        const idNameArray = idName.startsWith('[') ? new Function(`return ${idName}`)() : [idName];
+        
+        // Ensure scope exists (if no ss-data was present)
+        if (!scope) {
+           scope = parentScope ? { ...parentScope } : { data: {}, $refs: {}, $store: stores$1 };
+        } else {
+             // Create a new scope object inheriting from the current one to strictly scope the IDs?
+             // Or just augment the current scope? 
+             // Ideally we want to attach the id info to the scope chain.
+             // Let's create a child scope if we already have one, or just use it.
+             scope = { ...scope };
+        }
+        
+        // Initialize ID registry in scope if not present
+        if (!scope.$idRoots) scope.$idRoots = {};
+        
+        // For each name in ss-id, generate a unique ID
+        // Actually, ss-id declaratively says "this is a root for IDs of type X"
+        // Alpine: x-id="['text-input']"
+        // And then $id('text-input') returns "text-input-1" (stable for this instance)
+        
+        (Array.isArray(idNameArray) ? idNameArray : [idNameArray]).forEach(name => {
+             // Find next available ID for this name globally or within some context?
+             // Alpine uses a global incrementor but scoped retrieval.
+             // We need to store the "id state" on the element or scope.
+             if (!scope.$idRoots[name]) {
+                 // We need a global counter for 'name' to ensure uniqueness across the page?
+                 // Or just random? Alpine makes them stable if possible.
+                 // Simple implementation:
+                 if (!window.__ssIdCounts) window.__ssIdCounts = {};
+                 if (!window.__ssIdCounts[name]) window.__ssIdCounts[name] = 0;
+                 const id = ++window.__ssIdCounts[name];
+                 scope.$idRoots[name] = id;
+             }
+        });
+        
+        // Update scope on element since we modified/forked it
+        el.__ssScope = scope;
+    }
     
     // If no scope, skip processing directives
     if (!scope) {
@@ -807,6 +1046,12 @@ function walk(el, parentScope = null) {
     if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-if')) {
         handleIf(el, el.getAttribute('ss-if'), scope);
         return; // ss-if handles its own children
+    }
+
+    // Handle ss-teleport (must be on template element)
+    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-teleport')) {
+        handleTeleport(el, el.getAttribute('ss-teleport'), scope);
+        return; 
     }
     
     // Process all ss-* attributes
@@ -861,6 +1106,8 @@ function setupObserver() {
         for (const mutation of mutations) {
             for (const node of mutation.addedNodes) {
                 if (node.nodeType === 1) {
+                    if (node.__ssScope) return;
+                    
                     // Check if node or any ancestor already has scope
                     let current = node;
                     let parentScope = null;

@@ -8,6 +8,7 @@ SenangStart Actions uses HTML attributes prefixed with `ss-` to add reactive beh
 |-----------|-------------|
 | [ss-data](/directives/ss-data) | Define reactive data scope |
 | [ss-text](/directives/ss-text) | Bind text content |
+| [ss-id](/directives/ss-id) | Declare scoped IDs |
 | [ss-show](/directives/ss-show) | Toggle visibility |
 | [ss-if](/directives/ss-if) | Conditional rendering |
 | [ss-for](/directives/ss-for) | List rendering |
@@ -27,6 +28,7 @@ SenangStart Actions uses HTML attributes prefixed with `ss-` to add reactive beh
 | [ss-ref](/directives/ss-ref) | Element references |
 | [ss-effect](/directives/ss-effect) | Side effects |
 | [ss-transition](/directives/ss-transition) | CSS transitions |
+| [ss-teleport](/directives/ss-teleport) | Teleport content |
 | [ss-cloak](/directives/ss-cloak) | Hide until ready |
 
 ## Quick Examples
