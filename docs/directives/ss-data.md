@@ -2,6 +2,12 @@
 
 The `ss-data` directive defines a reactive data scope for an element and all its children. This is the foundation of SenangStart Actions reactivity.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-data.min.js"></script>
+```
+
 ## Syntax
 
 ```html

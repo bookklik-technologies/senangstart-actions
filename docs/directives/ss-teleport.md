@@ -2,6 +2,12 @@
 
 The `ss-teleport` directive allows you to move (teleport) part of your template to another DOM entry point (like the `<body>` tag), while maintaining the logic and reactivity scope of where it was defined. This is useful for modals, tooltips, and floating menus that need to break out of their parent's `z-index` or `overflow: hidden` constraints.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-teleport.min.js"></script>
+```
+
 ## Syntax
 
 ```html

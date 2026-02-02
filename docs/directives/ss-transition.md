@@ -2,6 +2,12 @@
 
 The `ss-transition` directive allows you to apply CSS transitions to elements when they are entering or leaving the DOM (toggled via `ss-show` or `ss-if`).
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-transition.min.js"></script>
+```
+
 ## Syntax
 
 ```html

@@ -2,6 +2,12 @@
 
 Arahan `ss-if` merender elemen secara bersyarat berdasarkan syarat. Berbeza dengan `ss-show`, ia menambah atau membuang elemen sepenuhnya dari DOM.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-if.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

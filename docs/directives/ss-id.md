@@ -2,6 +2,12 @@
 
 The `ss-id` directive allows you to declare "id scopes" for generating unique, predictable IDs within a component. This is essential for accessibility features like `aria-labelledby` and `aria-describedby` where two elements need to reference each other via a unique ID.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-id.min.js"></script>
+```
+
 ## Syntax
 
 ```html

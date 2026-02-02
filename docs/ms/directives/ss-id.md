@@ -2,6 +2,12 @@
 
 Arahan `ss-id` membolehkan anda mengisytiharkan "skop ID" untuk menjana ID yang unik dan boleh diramal dalam komponen. Ini penting untuk ciri-ciri kebolehcapaian seperti `aria-labelledby` dan `aria-describedby` di mana dua elemen perlu merujuk satu sama lain melalui ID yang unik.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-id.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

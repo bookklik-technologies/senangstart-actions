@@ -6,19 +6,16 @@
  */
 
 import { createReactive } from './reactive.js';
-import { attributeHandlers, handleBind, handleEvent, handleFor, handleIf, handleTeleport, setWalkFunction } from './handlers/index.js';
+import { 
+    getAttributeHandlers, 
+    getStructuralHandler, 
+    getScopeHandlers 
+} from './core/registry.js';
 
-// Store references
-let registeredDataFactories = {};
-let stores = {};
-
-/**
- * Set external references (called from index.js)
- */
-export function setReferences(dataFactories, storeRef) {
-    registeredDataFactories = dataFactories;
-    stores = storeRef;
-}
+// Forward declaration will be set by directives module if needed, 
+// but essentially we just need to know how to walk.
+// Actually, directives (like ss-for) need to call walk.
+// So we export walk.
 
 /**
  * Walk the DOM tree and initialize SenangStart attributes
@@ -32,135 +29,142 @@ export function walk(el, parentScope = null) {
     
     let scope = parentScope;
     
-    // Check for ss-data to create new scope
-    if (el.hasAttribute('ss-data')) {
-        const dataExpr = el.getAttribute('ss-data').trim();
-        let initialData = {};
-        
-        if (dataExpr) {
-            // Check if it's a registered data factory
-            if (registeredDataFactories[dataExpr]) {
-                initialData = registeredDataFactories[dataExpr]();
-            } else {
-                // Parse as object literal - use Function for safety
-                try {
-                    initialData = new Function(`return (${dataExpr})`)();
-                } catch (e) {
-                    console.error('[SenangStart] Failed to parse ss-data:', dataExpr, e);
-                }
-            }
+    // 1. Handle Scope Generators (ss-data, ss-id)
+    // We iterate over registered scope handlers. 
+    // Order might matter? ss-data creates the scope, ss-id augments it.
+    // Let's assume registration order or simple iteration.
+    // For now, let's look for specific known scope creators or iterate?
+    // Iteration is cleaner for extensibility.
+    
+    const scopeHandlers = getScopeHandlers();
+    for (const [name, handler] of Object.entries(scopeHandlers)) {
+        if (el.hasAttribute(name)) {
+            const expr = el.getAttribute(name);
+            scope = handler(el, expr, scope, parentScope);
+            
+            // Allow handler to stop processing if needed? 
+            // Usually scope handlers just return a new/augmented scope.
+            // We assign it to scope.
         }
-        
-        scope = {
-            data: createReactive(initialData, () => {}),
-            $refs: {},
-            $store: stores
-        };
-        
-        // Store scope on element for MutationObserver
+    }
+    
+    // Store scope on element if changed or just always?
+    // Only if we created/modified scope? 
+    // Existing logic put it on `el.__ssScope`.
+    if (scope !== parentScope && scope) {
         el.__ssScope = scope;
     }
 
-    // Handle ss-id (create ID scope)
-    if (el.hasAttribute('ss-id')) {
-        const idName = el.getAttribute('ss-id').trim() || 'default';
-        const idNameArray = idName.startsWith('[') ? new Function(`return ${idName}`)() : [idName];
-        
-        // Ensure scope exists (if no ss-data was present)
-        if (!scope) {
-           scope = parentScope ? { ...parentScope } : { data: {}, $refs: {}, $store: stores };
-        } else {
-             // Create a new scope object inheriting from the current one to strictly scope the IDs?
-             // Or just augment the current scope? 
-             // Ideally we want to attach the id info to the scope chain.
-             // Let's create a child scope if we already have one, or just use it.
-             scope = { ...scope };
-        }
-        
-        // Initialize ID registry in scope if not present
-        if (!scope.$idRoots) scope.$idRoots = {};
-        
-        // For each name in ss-id, generate a unique ID
-        // Actually, ss-id declaratively says "this is a root for IDs of type X"
-        // Alpine: x-id="['text-input']"
-        // And then $id('text-input') returns "text-input-1" (stable for this instance)
-        
-        (Array.isArray(idNameArray) ? idNameArray : [idNameArray]).forEach(name => {
-             // Find next available ID for this name globally or within some context?
-             // Alpine uses a global incrementor but scoped retrieval.
-             // We need to store the "id state" on the element or scope.
-             if (!scope.$idRoots[name]) {
-                 // We need a global counter for 'name' to ensure uniqueness across the page?
-                 // Or just random? Alpine makes them stable if possible.
-                 // Simple implementation:
-                 if (!window.__ssIdCounts) window.__ssIdCounts = {};
-                 if (!window.__ssIdCounts[name]) window.__ssIdCounts[name] = 0;
-                 const id = ++window.__ssIdCounts[name];
-                 scope.$idRoots[name] = id;
-             }
-        });
-        
-        // Update scope on element since we modified/forked it
-        el.__ssScope = scope;
-    }
-    
-    // If no scope, skip processing directives
+    // If no scope, can we skip?
     if (!scope) {
-        // Still walk children in case they have ss-data
         Array.from(el.children).forEach(child => walk(child, null));
         return;
     }
     
-    // Handle ss-for (must be on template element)
-    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-for')) {
-        handleFor(el, el.getAttribute('ss-for'), scope);
-        return; // ss-for handles its own children
+    // 2. Handle Structural Directives (change DOM structure: ss-if, ss-for, ss-teleport)
+    // These must run before other attributes and might stop traversal of current node.
+    
+    // We can't easily iterate because order matters (scoping) and they manipulate DOM.
+    // Usually they are on <template> tags.
+    if (el.tagName === 'TEMPLATE') {
+        // We check for specific structural directives. 
+        // We can iterate registered structural directives?
+        // But what if multiple are present? 
+        // Vue/Alpine usually have precedence. 
+        // Let's iterate but prioritize? Or just one allowed?
+        // For now, just finding the first matching one is probably safe enough for this refactor.
+        
+        // However, `getStructuralHandler` returns a specific one.
+        // We probably want to check `attributes` of the element against registered structurals.
     }
     
-    // Handle ss-if (must be on template element)
-    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-if')) {
-        handleIf(el, el.getAttribute('ss-if'), scope);
-        return; // ss-if handles its own children
-    }
-
-    // Handle ss-teleport (must be on template element)
-    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-teleport')) {
-        handleTeleport(el, el.getAttribute('ss-teleport'), scope);
-        return; 
+    // Check for structural directives on the element
+    const attrs = Array.from(el.attributes);
+    for (const attr of attrs) {
+        const structuralHandler = getStructuralHandler(attr.name);
+        if (structuralHandler) {
+            if (structuralHandler(el, attr.value, scope, walk) === false) {
+                 // specific return value to indicate "stop walking this node" (it was removed/replaced)
+                 return;
+            }
+            // Some structurals (like ss-teleport) might remove the element, so we return.
+            // If they don't remove (unlikely for template structurals?), we continue?
+            // Existing logic: ss-for/if/teleport all return immediately.
+            return;
+        }
     }
     
-    // Process all ss-* attributes
-    const attributes = Array.from(el.attributes);
+    // 3. Handle Standard Attributes (ss-text, ss-bind, etc.)
+    const attributeHandlers = getAttributeHandlers();
     
-    for (const attr of attributes) {
+    // Re-scanning attributes in case structural didn't trigger
+    for (const attr of Array.from(el.attributes)) {
         const name = attr.name;
         const value = attr.value;
         
-        // Skip ss-data (already processed) and ss-describe (metadata only)
-        if (name === 'ss-data' || name === 'ss-describe') continue;
-        
-        // Handle standard attributes
+        // Exact match handler
         if (attributeHandlers[name]) {
             attributeHandlers[name](el, value, scope);
+            continue;
         }
-        // Handle ss-bind:[attr]
-        else if (name.startsWith('ss-bind:')) {
-            handleBind(el, name, value, scope);
-        }
-        // Handle ss-on:[event]
-        else if (name.startsWith('ss-on:')) {
-            handleEvent(el, name, value, scope);
+        
+        // Prefix match handlers (ss-bind:, ss-on:)
+        // We need a way to register "prefix" handlers or wildcards?
+        // The registry has `attributes` which are exact matches.
+        // We might need `modifiers` or `patterns` in registry?
+        // For now, I'll keep the wildcard logic here but use registered handlers if I can, 
+        // or just hardcode the "dispatch" to the registered 'ss-bind' / 'ss-on' if they are registered as such?
+        // 
+        // Implementation Plan said: "Extract ss-bind, ss-on".
+        // They should probably be registered as `ss-bind` and `ss-on` and we check for prefix.
+        
+        // Actually, let's iterate handlers and see if they match? 
+        // Optimization: Check if attr name starts with known prefixes?
+        // Better: register 'ss-bind' and 'ss-on' in the registry. 
+        // But the attribute name on element is `ss-bind:foo`, not `ss-bind`.
+        // So `attributeHandlers['ss-bind']` won't match.
+        
+        // We can handle this by checking if any registered handler "matches" the attribute.
+        // But that's O(N*M).
+        // 
+        // Alternative: The registry could support regex or prefix keys.
+        // Or we just check for the common colon pattern.
+        
+        const colonIndex = name.indexOf(':');
+        if (colonIndex > -1) {
+            const prefix = name.substring(0, colonIndex);
+            if (attributeHandlers[prefix]) {
+                attributeHandlers[prefix](el, name, value, scope);
+            }
         }
     }
     
-    // Remove ss-cloak after processing
-    if (el.hasAttribute('ss-cloak')) {
-        el.removeAttribute('ss-cloak');
-    }
+    // 4. Recursively walk children
+    // (Unless structural directive stopped us, which we returned above)
     
-    // Walk children
+    // Note: ss-cloak handling will be a registered attribute handler now
+    
     Array.from(el.children).forEach(child => walk(child, scope));
 }
 
-// Set the walk function reference in directives module
-setWalkFunction(walk);
+// References for external data (passed from index.js)
+let registeredDataFactories = {};
+let stores = {};
+
+export function setReferences(dataFactories, storeRef) {
+    registeredDataFactories = dataFactories;
+    stores = storeRef;
+}
+
+// Helpers for scope handlers to access global stores/factories
+export function getStore(name) {
+    return stores[name];
+}
+
+export function getDataFactory(name) {
+    return registeredDataFactories[name];
+}
+
+export function getGlobalStores() {
+    return stores;
+}

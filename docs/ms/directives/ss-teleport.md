@@ -2,6 +2,12 @@
 
 Arahan `ss-teleport` membolehkan anda memindahkan (teleport) sebahagian daripada templat anda ke lokasi DOM lain (seperti tag `<body>`), sambil mengekalkan logik dan skop reaktif dari tempat ia didefinisikan. Ini berguna untuk modal, tooltip, dan menu terapung yang perlu keluar daripada kekangan `z-index` atau `overflow: hidden` ibu bapa mereka.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-teleport.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

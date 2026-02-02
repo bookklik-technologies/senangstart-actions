@@ -2,6 +2,12 @@
 
 The `ss-on` directive attaches event listeners to elements. It supports all DOM events with optional modifiers for common patterns.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-on.min.js"></script>
+```
+
 ## Syntax
 
 ```html

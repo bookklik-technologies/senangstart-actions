@@ -221,6 +221,341 @@ function scheduleUpdate(callback) {
 }
 
 /**
+ * SenangStart Actions - Core Registry
+ * Central registry for directives and scopes
+ * 
+ * @module core/registry
+ */
+
+const registry = {
+    attributes: {},    // Standard directives (ss-text, ss-show, etc.)
+    structurals: {},   // Structural directives (ss-if, ss-for, etc.)
+    scopes: {}};
+
+/**
+ * Register a standard attribute directive
+ * @param {string} name - Directive name (e.g., 'ss-text')
+ * @param {Function} handler - Handler function
+ */
+function registerAttribute(name, handler) {
+    registry.attributes[name] = handler;
+}
+
+/**
+ * Register a structural directive
+ * @param {string} name - Directive name (e.g., 'ss-if')
+ * @param {Function} handler - Handler function
+ */
+function registerStructural(name, handler) {
+    registry.structurals[name] = handler;
+}
+
+/**
+ * Register a scope directive
+ * @param {string} name - Directive name (e.g., 'ss-data')
+ * @param {Function} handler - Handler function that returns scope data
+ */
+function registerScope(name, handler) {
+    registry.scopes[name] = handler;
+}
+
+/**
+ * Get all registered attribute handlers
+ */
+function getAttributeHandlers() {
+    return registry.attributes;
+}
+
+/**
+ * Get a specific structural handler
+ */
+function getStructuralHandler(name) {
+    return registry.structurals[name];
+}
+
+/**
+ * Get all registered scope handlers
+ */
+function getScopeHandlers() {
+    return registry.scopes;
+}
+
+/**
+ * SenangStart Actions - DOM Walker
+ * Recursive DOM traversal and initialization
+ * 
+ * @module walker
+ */
+
+
+// Forward declaration will be set by directives module if needed, 
+// but essentially we just need to know how to walk.
+// Actually, directives (like ss-for) need to call walk.
+// So we export walk.
+
+/**
+ * Walk the DOM tree and initialize SenangStart attributes
+ */
+function walk(el, parentScope = null) {
+    // Skip non-element nodes
+    if (el.nodeType !== 1) return;
+    
+    // Skip if element has ss-ignore
+    if (el.hasAttribute('ss-ignore')) return;
+    
+    let scope = parentScope;
+    
+    // 1. Handle Scope Generators (ss-data, ss-id)
+    // We iterate over registered scope handlers. 
+    // Order might matter? ss-data creates the scope, ss-id augments it.
+    // Let's assume registration order or simple iteration.
+    // For now, let's look for specific known scope creators or iterate?
+    // Iteration is cleaner for extensibility.
+    
+    const scopeHandlers = getScopeHandlers();
+    for (const [name, handler] of Object.entries(scopeHandlers)) {
+        if (el.hasAttribute(name)) {
+            const expr = el.getAttribute(name);
+            scope = handler(el, expr, scope, parentScope);
+            
+            // Allow handler to stop processing if needed? 
+            // Usually scope handlers just return a new/augmented scope.
+            // We assign it to scope.
+        }
+    }
+    
+    // Store scope on element if changed or just always?
+    // Only if we created/modified scope? 
+    // Existing logic put it on `el.__ssScope`.
+    if (scope !== parentScope && scope) {
+        el.__ssScope = scope;
+    }
+
+    // If no scope, can we skip?
+    if (!scope) {
+        Array.from(el.children).forEach(child => walk(child, null));
+        return;
+    }
+    
+    // 2. Handle Structural Directives (change DOM structure: ss-if, ss-for, ss-teleport)
+    // These must run before other attributes and might stop traversal of current node.
+    
+    // We can't easily iterate because order matters (scoping) and they manipulate DOM.
+    // Usually they are on <template> tags.
+    if (el.tagName === 'TEMPLATE') ;
+    
+    // Check for structural directives on the element
+    const attrs = Array.from(el.attributes);
+    for (const attr of attrs) {
+        const structuralHandler = getStructuralHandler(attr.name);
+        if (structuralHandler) {
+            if (structuralHandler(el, attr.value, scope, walk) === false) {
+                 // specific return value to indicate "stop walking this node" (it was removed/replaced)
+                 return;
+            }
+            // Some structurals (like ss-teleport) might remove the element, so we return.
+            // If they don't remove (unlikely for template structurals?), we continue?
+            // Existing logic: ss-for/if/teleport all return immediately.
+            return;
+        }
+    }
+    
+    // 3. Handle Standard Attributes (ss-text, ss-bind, etc.)
+    const attributeHandlers = getAttributeHandlers();
+    
+    // Re-scanning attributes in case structural didn't trigger
+    for (const attr of Array.from(el.attributes)) {
+        const name = attr.name;
+        const value = attr.value;
+        
+        // Exact match handler
+        if (attributeHandlers[name]) {
+            attributeHandlers[name](el, value, scope);
+            continue;
+        }
+        
+        // Prefix match handlers (ss-bind:, ss-on:)
+        // We need a way to register "prefix" handlers or wildcards?
+        // The registry has `attributes` which are exact matches.
+        // We might need `modifiers` or `patterns` in registry?
+        // For now, I'll keep the wildcard logic here but use registered handlers if I can, 
+        // or just hardcode the "dispatch" to the registered 'ss-bind' / 'ss-on' if they are registered as such?
+        // 
+        // Implementation Plan said: "Extract ss-bind, ss-on".
+        // They should probably be registered as `ss-bind` and `ss-on` and we check for prefix.
+        
+        // Actually, let's iterate handlers and see if they match? 
+        // Optimization: Check if attr name starts with known prefixes?
+        // Better: register 'ss-bind' and 'ss-on' in the registry. 
+        // But the attribute name on element is `ss-bind:foo`, not `ss-bind`.
+        // So `attributeHandlers['ss-bind']` won't match.
+        
+        // We can handle this by checking if any registered handler "matches" the attribute.
+        // But that's O(N*M).
+        // 
+        // Alternative: The registry could support regex or prefix keys.
+        // Or we just check for the common colon pattern.
+        
+        const colonIndex = name.indexOf(':');
+        if (colonIndex > -1) {
+            const prefix = name.substring(0, colonIndex);
+            if (attributeHandlers[prefix]) {
+                attributeHandlers[prefix](el, name, value, scope);
+            }
+        }
+    }
+    
+    // 4. Recursively walk children
+    // (Unless structural directive stopped us, which we returned above)
+    
+    // Note: ss-cloak handling will be a registered attribute handler now
+    
+    Array.from(el.children).forEach(child => walk(child, scope));
+}
+
+// References for external data (passed from index.js)
+let registeredDataFactories$1 = {};
+let stores$1 = {};
+
+function setReferences(dataFactories, storeRef) {
+    registeredDataFactories$1 = dataFactories;
+    stores$1 = storeRef;
+}
+
+function getDataFactory(name) {
+    return registeredDataFactories$1[name];
+}
+
+function getGlobalStores() {
+    return stores$1;
+}
+
+/**
+ * SenangStart Actions - MutationObserver
+ * Watch for dynamically added elements
+ * 
+ * @module observer
+ */
+
+
+/**
+ * Set up observer for dynamically added elements
+ */
+function setupObserver() {
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === 1) {
+                    if (node.__ssScope) return;
+                    
+                    // Check if node or any ancestor already has scope
+                    let current = node;
+                    let parentScope = null;
+                    
+                    while (current.parentElement) {
+                        current = current.parentElement;
+                        if (current.__ssScope) {
+                            parentScope = current.__ssScope;
+                            break;
+                        }
+                    }
+                    
+                    walk(node, parentScope);
+                }
+            }
+        }
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
+    return observer;
+}
+
+/**
+ * SenangStart Actions - Core Instance
+ * Base framework instance without directives
+ * 
+ * @module core/senangstart
+ */
+
+
+// =========================================================================
+// Internal State
+// =========================================================================
+const registeredDataFactories = {};  // SenangStart.data() registrations
+const stores = {};                   // SenangStart.store() registrations
+
+// Set references in walker module
+setReferences(registeredDataFactories, stores);
+
+// =========================================================================
+// Public API
+// =========================================================================
+
+const SenangStart = {
+    /**
+     * Register a reusable data component
+     * @param {string} name - Component name
+     * @param {Function} factory - Factory function returning data object
+     */
+    data(name, factory) {
+        if (typeof factory !== 'function') {
+            console.error('[SenangStart] data() requires a factory function');
+            return this;
+        }
+        registeredDataFactories[name] = factory;
+        return this;
+    },
+    
+    /**
+     * Register a global reactive store
+     * @param {string} name - Store name
+     * @param {Object} data - Store data object
+     */
+    store(name, data) {
+        if (typeof data !== 'object') {
+            console.error('[SenangStart] store() requires an object');
+            return this;
+        }
+        stores[name] = createReactive(data, () => {});
+        return this;
+    },
+    
+    /**
+     * Manually initialize a DOM tree
+     * @param {Element} root - Root element to initialize
+     */
+    init(root = document.body) {
+        walk(root, null);
+        return this;
+    },
+    
+    /**
+     * Start the framework
+     */
+    start() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.init();
+                setupObserver();
+            });
+        } else {
+            this.init();
+            setupObserver();
+        }
+        return this;
+    },
+    
+    /**
+     * Version
+     */
+    version: '0.1.0'
+};
+
+/**
  * SenangStart Actions - Expression Evaluator
  * Safe evaluation of expressions within component scope
  * 
@@ -345,13 +680,25 @@ function createExecutor(expression, scope, element) {
     }
 }
 
-/**
- * SenangStart Actions - Attribute Handlers
- * Handlers for basic ss-* attributes
- * 
- * @module handlers/attributes
- */
+function install$e() {
+    registerAttribute('ss-text', (el, expr, scope) => {
+        const update = () => {
+            const evaluator = createEvaluator(expr, scope, el);
+            el.innerText = evaluator() ?? '';
+        };
+        runEffect(update);
+    });
+}
 
+function install$d() {
+    registerAttribute('ss-html', (el, expr, scope) => {
+        const update = () => {
+            const evaluator = createEvaluator(expr, scope, el);
+            el.innerHTML = evaluator() ?? '';
+        };
+        runEffect(update);
+    });
+}
 
 /**
  * Parse transition configuration from element attributes
@@ -368,15 +715,12 @@ function getTransitionConfig(el) {
         if (!attr.name.startsWith('ss-transition')) return;
         
         const parts = attr.name.split('.');
-        // parts[0] is 'ss-transition' or 'ss-transition:enter' or 'ss-transition:leave'
-        // parts[1...] are modifiers
-        
         const mainPart = parts[0];
         let phase = 'both'; // both, enter, leave
         
         if (mainPart === 'ss-transition:enter') phase = 'enter';
         else if (mainPart === 'ss-transition:leave') phase = 'leave';
-        else if (mainPart !== 'ss-transition') return; // ignore other attrs
+        else if (mainPart !== 'ss-transition') return;
         
         const modifiers = parts.slice(1);
         
@@ -400,9 +744,7 @@ function getTransitionConfig(el) {
                      phaseConfig.scale = parseInt(nextMod) / 100;
                      i++;
                 } else if (mod === 'easing' && nextMod) {
-                     phaseConfig.easing = nextMod; // simple support for ease-in-out, etc?
-                     // If it's a known css easing identifier it works, otherwise might process it.
-                     // The user request example: ss-transition.easing.ease-in-out
+                     phaseConfig.easing = nextMod;
                      i++;
                 }
             }
@@ -423,21 +765,15 @@ function getTransitionConfig(el) {
  * Handle ss-transition animations
  */
 function handleTransition(el, show, originalDisplay) {
-    const config = getTransitionConfig(el); // Always parse fresh
+    const config = getTransitionConfig(el);
     
     if (show) {
-        // Enter transition
-        // Cancel any pending leave transition
-        // el.classList.remove('ss-leave-active', 'ss-leave-to'); // Actually handled by logic flow usually
-        
+        // Enter
         el.style.display = originalDisplay;
-        
-        // Initial state
-        el.style.transition = 'none'; // reset to apply initial props
+        el.style.transition = 'none';
         
         const { duration, delay, easing, opacity, scale } = config.enter;
         
-        // Helper to set transition CSS
         const setTransition = () => {
              el.style.transitionProperty = 'opacity, transform';
              el.style.transitionDuration = `${duration}ms`;
@@ -445,39 +781,25 @@ function handleTransition(el, show, originalDisplay) {
              el.style.transitionDelay = `${delay}ms`;
         };
 
-        // Start state (hidden-ish)
-        if (opacity < 1) el.style.opacity = 0; // standard fade in
-        if (scale < 1) el.style.transform = `scale(${scale})`; // standard scale in
+        if (opacity < 1) el.style.opacity = 0;
+        if (scale < 1) el.style.transform = `scale(${scale})`;
         
-        // If not using opacity/scale mods, specific classes might handle it?
-        // Prioritize modifiers if they dictate change.
-        // Users might mix classes and modifiers. 
-        // If modifiers are present involving opacity/scale, we inline styles.
-        
-        // Also support standard class-based if no modifiers?
-        // The previous implementation added classes. We should KEEP that behavior for bw compat.
         el.classList.add('ss-enter-from');
         el.classList.add('ss-enter-active');
         
-        // Force reflow
-        void el.offsetHeight;
+        void el.offsetHeight; // Force reflow
         
-        // Transition to end state
         requestAnimationFrame(() => {
             setTransition();
-            
             el.classList.remove('ss-enter-from');
             el.classList.add('ss-enter-to');
             
-            // Apply end inline styles
             if (opacity < 1) el.style.opacity = 1;
             if (scale < 1) el.style.transform = 'scale(1)';
         });
         
         const onEnd = () => {
             el.classList.remove('ss-enter-active', 'ss-enter-to');
-            
-            // Cleanup inline styles?
             el.style.transition = '';
             el.style.transitionProperty = '';
             el.style.transitionDuration = '';
@@ -485,16 +807,13 @@ function handleTransition(el, show, originalDisplay) {
             el.style.transitionDelay = '';
             el.style.opacity = '';
             el.style.transform = '';
-            
             el.removeEventListener('transitionend', onEnd);
         };
         el.addEventListener('transitionend', onEnd);
     } else {
-        // Leave transition
+        // Leave
         el.classList.add('ss-leave-from');
         el.classList.add('ss-leave-active');
-        
-        // Initial state (fully visible)
         el.style.transition = 'none';
         
         const { duration, delay, easing, opacity, scale } = config.leave;
@@ -502,20 +821,17 @@ function handleTransition(el, show, originalDisplay) {
         const setTransition = () => {
              el.style.transitionProperty = 'opacity, transform';
              el.style.transitionDuration = `${duration}ms`;
-             el.style.transitionTimingFunction = easing; // Should this be 'leave' easing?
+             el.style.transitionTimingFunction = easing;
              el.style.transitionDelay = `${delay}ms`;
         };
         
-        // Force reflow
         void el.offsetHeight;
         
         requestAnimationFrame(() => {
             setTransition();
-            
             el.classList.remove('ss-leave-from');
             el.classList.add('ss-leave-to');
             
-            // Target state
             if (opacity < 1) el.style.opacity = 0;
             if (scale < 1) el.style.transform = `scale(${scale})`;
         });
@@ -523,49 +839,18 @@ function handleTransition(el, show, originalDisplay) {
         const onEnd = () => {
             el.style.display = 'none';
             el.classList.remove('ss-leave-active', 'ss-leave-to');
-            
-            // Cleanup
             el.style.transition = '';
             el.style.transitionProperty = '';
             el.style.opacity = '';
             el.style.transform = '';
-            
             el.removeEventListener('transitionend', onEnd);
         };
         el.addEventListener('transitionend', onEnd);
     }
 }
 
-/**
- * Attribute handlers map
- */
-const attributeHandlers = {
-    /**
-     * ss-text: Set element's innerText
-     */
-    'ss-text': (el, expr, scope) => {
-        const update = () => {
-            const evaluator = createEvaluator(expr, scope, el);
-            el.innerText = evaluator() ?? '';
-        };
-        runEffect(update);
-    },
-    
-    /**
-     * ss-html: Set element's innerHTML
-     */
-    'ss-html': (el, expr, scope) => {
-        const update = () => {
-            const evaluator = createEvaluator(expr, scope, el);
-            el.innerHTML = evaluator() ?? '';
-        };
-        runEffect(update);
-    },
-    
-    /**
-     * ss-show: Toggle visibility
-     */
-    'ss-show': (el, expr, scope) => {
+function install$c() {
+    registerAttribute('ss-show', (el, expr, scope) => {
         const originalDisplay = el.style.display || '';
         
         const update = () => {
@@ -583,20 +868,17 @@ const attributeHandlers = {
             }
         };
         runEffect(update);
-    },
-    
-    /**
-     * ss-model: Two-way binding for inputs
-     */
-    'ss-model': (el, expr, scope) => {
+    });
+}
+
+function install$b() {
+    registerAttribute('ss-model', (el, expr, scope) => {
         const { data } = scope;
         
-        // Determine input type
         const isCheckbox = el.type === 'checkbox';
         const isRadio = el.type === 'radio';
         const isSelect = el.tagName === 'SELECT';
         
-        // Set initial value
         const setInitialValue = () => {
             const evaluator = createEvaluator(expr, scope, el);
             const value = evaluator();
@@ -614,7 +896,6 @@ const attributeHandlers = {
         
         runEffect(setInitialValue);
         
-        // Listen for changes
         const eventType = isCheckbox || isRadio ? 'change' : 'input';
         el.addEventListener(eventType, () => {
             let newValue;
@@ -623,515 +904,316 @@ const attributeHandlers = {
                 newValue = el.checked;
             } else if (isRadio) {
                 if (el.checked) newValue = el.value;
-                else return; // Don't update if not checked
+                else return;
             } else {
                 newValue = el.value;
             }
             
-            // Set the value on the data object
             data[expr] = newValue;
         });
-    },
-    
-    /**
-     * ss-ref: Register element reference
-     */
-    'ss-ref': (el, name, scope) => {
+    });
+}
+
+function install$a() {
+    registerAttribute('ss-ref', (el, name, scope) => {
         scope.$refs[name] = el;
-    },
-    
-    /**
-     * ss-init: Run initialization code
-     */
-    'ss-init': (el, expr, scope) => {
+    });
+}
+
+function install$9() {
+    registerAttribute('ss-init', (el, expr, scope) => {
         const executor = createExecutor(expr, scope, el);
         executor();
-    },
-    
-    /**
-     * ss-effect: Run reactive effect
-     */
-    'ss-effect': (el, expr, scope) => {
+    });
+}
+
+function install$8() {
+    registerAttribute('ss-effect', (el, expr, scope) => {
         const update = () => {
             const executor = createExecutor(expr, scope, el);
             executor();
         };
         runEffect(update);
-    }
-};
-
-/**
- * SenangStart Actions - Bind Handler
- * Handler for ss-bind:[attr] dynamic attribute binding
- * 
- * @module handlers/bind
- */
-
-
-/**
- * Handle ss-bind:[attr] dynamically
- */
-function handleBind(el, attrName, expr, scope) {
-    const attr = attrName.replace('ss-bind:', '');
-    
-    const update = () => {
-        const evaluator = createEvaluator(expr, scope, el);
-        const value = evaluator();
-        
-        if (attr === 'class') {
-            if (typeof value === 'string') {
-                el.className = value;
-            } else if (typeof value === 'object') {
-                // Object syntax: { 'class-name': condition }
-                Object.entries(value).forEach(([className, condition]) => {
-                    el.classList.toggle(className, !!condition);
-                });
-            }
-        } else if (attr === 'style') {
-            if (typeof value === 'string') {
-                el.style.cssText = value;
-            } else if (typeof value === 'object') {
-                Object.assign(el.style, value);
-            }
-        } else if (value === false || value === null || value === undefined) {
-            el.removeAttribute(attr);
-        } else if (value === true) {
-            el.setAttribute(attr, '');
-        } else {
-            el.setAttribute(attr, value);
-        }
-    };
-    
-    runEffect(update);
-}
-
-/**
- * SenangStart Actions - Event Handler
- * Handler for ss-on:[event] with modifiers
- * 
- * @module handlers/events
- */
-
-
-/**
- * Handle ss-on:[event] dynamically
- */
-function handleEvent(el, attrName, expr, scope) {
-    const parts = attrName.replace('ss-on:', '').split('.');
-    const eventName = parts[0];
-    const modifiers = parts.slice(1);
-    
-    const executor = createExecutor(expr, scope, el);
-    
-    const handler = (event) => {
-        // Handle modifiers
-        if (modifiers.includes('prevent')) event.preventDefault();
-        if (modifiers.includes('stop')) event.stopPropagation();
-        if (modifiers.includes('self') && event.target !== el) return;
-        if (modifiers.includes('once')) {
-            el.removeEventListener(eventName, handler);
-        }
-        
-        // For keyboard events, check key modifiers
-        if (event instanceof KeyboardEvent) {
-            const key = event.key.toLowerCase();
-            const keyModifiers = ['enter', 'escape', 'tab', 'space', 'up', 'down', 'left', 'right'];
-            const hasKeyModifier = modifiers.some(m => keyModifiers.includes(m));
-            
-            if (hasKeyModifier) {
-                const keyMap = {
-                    'enter': 'enter',
-                    'escape': 'escape',
-                    'tab': 'tab',
-                    'space': ' ',
-                    'up': 'arrowup',
-                    'down': 'arrowdown',
-                    'left': 'arrowleft',
-                    'right': 'arrowright'
-                };
-                
-                const shouldFire = modifiers.some(m => keyMap[m] === key);
-                if (!shouldFire) return;
-            }
-        }
-        
-        // Execute the expression with $event available
-        scope.data.$event = event;
-        executor();
-        delete scope.data.$event;
-    };
-    
-    // Special window/document events
-    if (modifiers.includes('window')) {
-        window.addEventListener(eventName, handler);
-    } else if (modifiers.includes('document')) {
-        document.addEventListener(eventName, handler);
-    } else {
-        el.addEventListener(eventName, handler);
-    }
-}
-
-/**
- * SenangStart Actions - Directive Handlers
- * Handlers for ss-for and ss-if template directives
- * 
- * @module handlers/directives
- */
-
-
-// Forward declaration - will be set by walker.js
-let walkFn = null;
-
-/**
- * Set the walk function reference (to avoid circular imports)
- */
-function setWalkFunction(fn) {
-    walkFn = fn;
-}
-
-/**
- * Handle ss-for directive
- */
-function handleFor(templateEl, expr, scope) {
-    // Parse expression: "item in items" or "(item, index) in items"
-    const match = expr.match(/^\s*(?:\(([^,]+),\s*([^)]+)\)|([^\s]+))\s+in\s+(.+)$/);
-    if (!match) {
-        console.error('[SenangStart] Invalid ss-for expression:', expr);
-        return;
-    }
-    
-    const itemName = (match[1] || match[3]).trim();
-    const indexName = (match[2] || 'index').trim();
-    const arrayExpr = match[4];
-    
-    const parent = templateEl.parentNode;
-    const anchor = document.createComment(`ss-for: ${expr}`);
-    parent.insertBefore(anchor, templateEl);
-    templateEl.remove();
-    
-    let currentNodes = [];
-    let lastItemsJSON = '';
-    
-    const update = () => {
-        const evaluator = createEvaluator(arrayExpr, scope, templateEl);
-        const items = evaluator() || [];
-        
-        // Check if items actually changed (shallow comparison)
-        const itemsJSON = JSON.stringify(items);
-        if (itemsJSON === lastItemsJSON) {
-            return; // No change, skip re-render
-        }
-        lastItemsJSON = itemsJSON;
-        
-        // Remove old nodes
-        currentNodes.forEach(node => node.remove());
-        currentNodes = [];
-        
-        // Create new nodes
-        items.forEach((item, index) => {
-            const clone = templateEl.content.cloneNode(true);
-            const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
-            
-            // Create child scope with item and index - use parent scope's data for non-item properties
-            const itemScope = {
-                data: createReactive({ 
-                    ...scope.data, 
-                    [itemName]: item, 
-                    [indexName]: index 
-                }, () => {}),
-                $refs: scope.$refs,
-                $store: scope.$store,
-                parentData: scope.data // Keep reference to parent data
-            };
-            
-            nodes.forEach(node => {
-                parent.insertBefore(node, anchor);
-                currentNodes.push(node);
-                node.__ssScope = itemScope;
-                if (walkFn) walkFn(node, itemScope);
-            });
-        });
-    };
-    
-    runEffect(update);
-}
-
-/**
- * Handle ss-if directive
- */
-function handleIf(templateEl, expr, scope) {
-    const parent = templateEl.parentNode;
-    const anchor = document.createComment(`ss-if: ${expr}`);
-    parent.insertBefore(anchor, templateEl);
-    templateEl.remove();
-    
-    let currentNodes = [];
-    
-    const update = () => {
-        const evaluator = createEvaluator(expr, scope, templateEl);
-        const condition = !!evaluator();
-        
-        // Remove old nodes
-        currentNodes.forEach(node => node.remove());
-        currentNodes = [];
-        
-        if (condition) {
-            const clone = templateEl.content.cloneNode(true);
-            const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
-            
-            nodes.forEach(node => {
-                parent.insertBefore(node, anchor);
-                currentNodes.push(node);
-                if (walkFn) walkFn(node, scope);
-            });
-        }
-    };
-    
-    runEffect(update);
-}
-
-/**
- * Handle ss-teleport directive
- */
-function handleTeleport(templateEl, expr, scope) {
-    const targetSelector = expr;
-    let target = document.querySelector(targetSelector);
-    
-    // Create anchor in original location
-    const anchor = document.createComment(`ss-teleport: ${targetSelector}`);
-    templateEl.parentNode.insertBefore(anchor, templateEl);
-    templateEl.remove();
-    
-    // If target doesn't exist yet, we could use MutationObserver on body to wait for it.
-    // For now, mirroring Alpine's behavior: if it doesn't exist, it warns and does nothing? 
-    // Or maybe we should retry. Let's start with immediate check.
-    if (!target) {
-        console.warn(`[SenangStart] ss-teleport target not found: ${targetSelector}`);
-        return;
-    }
-    
-    // Clone content
-    const clone = templateEl.content.cloneNode(true);
-    const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
-    
-    // Append to target
-    nodes.forEach(node => {
-        target.appendChild(node);
-        if (walkFn) walkFn(node, scope);
     });
-    
-    // Cleanup when original scope/component is destroyed?
-    // Currently SenangStart doesn't have a clear "destroy" signal for the root unless removed.
-    // We'll rely on the nodes being in the DOM.
 }
 
-/**
- * SenangStart Actions - DOM Walker
- * Recursive DOM traversal and initialization
- * 
- * @module walker
- */
-
-
-// Store references
-let registeredDataFactories$1 = {};
-let stores$1 = {};
-
-/**
- * Set external references (called from index.js)
- */
-function setReferences(dataFactories, storeRef) {
-    registeredDataFactories$1 = dataFactories;
-    stores$1 = storeRef;
-}
-
-/**
- * Walk the DOM tree and initialize SenangStart attributes
- */
-function walk(el, parentScope = null) {
-    // Skip non-element nodes
-    if (el.nodeType !== 1) return;
-    
-    // Skip if element has ss-ignore
-    if (el.hasAttribute('ss-ignore')) return;
-    
-    let scope = parentScope;
-    
-    // Check for ss-data to create new scope
-    if (el.hasAttribute('ss-data')) {
-        const dataExpr = el.getAttribute('ss-data').trim();
+function install$7() {
+    registerScope('ss-data', (el, expr, scope, parentScope) => {
+        expr = expr.trim();
         let initialData = {};
         
-        if (dataExpr) {
-            // Check if it's a registered data factory
-            if (registeredDataFactories$1[dataExpr]) {
-                initialData = registeredDataFactories$1[dataExpr]();
+        if (expr) {
+            const factory = getDataFactory(expr);
+            if (factory) {
+                initialData = factory();
             } else {
-                // Parse as object literal - use Function for safety
                 try {
-                    initialData = new Function(`return (${dataExpr})`)();
+                    initialData = new Function(`return (${expr})`)();
                 } catch (e) {
-                    console.error('[SenangStart] Failed to parse ss-data:', dataExpr, e);
+                    console.error('[SenangStart] Failed to parse ss-data:', expr, e);
                 }
             }
         }
         
-        scope = {
+        // ss-data creates a new scope
+        const newScope = {
             data: createReactive(initialData, () => {}),
             $refs: {},
-            $store: stores$1
+            $store: getGlobalStores() // Ensure we have access to stores
         };
         
-        // Store scope on element for MutationObserver
-        el.__ssScope = scope;
-    }
+        return newScope;
+    });
+}
 
-    // Handle ss-id (create ID scope)
-    if (el.hasAttribute('ss-id')) {
-        const idName = el.getAttribute('ss-id').trim() || 'default';
+function install$6() {
+    registerScope('ss-id', (el, expr, scope, parentScope) => {
+        const idName = expr.trim() || 'default';
         const idNameArray = idName.startsWith('[') ? new Function(`return ${idName}`)() : [idName];
         
-        // Ensure scope exists (if no ss-data was present)
+        // Ensure scope exists
+        let newScope = scope;
         if (!scope) {
-           scope = parentScope ? { ...parentScope } : { data: {}, $refs: {}, $store: stores$1 };
+           newScope = parentScope ? { ...parentScope } : { data: {}, $refs: {}, $store: getGlobalStores() };
         } else {
-             // Create a new scope object inheriting from the current one to strictly scope the IDs?
-             // Or just augment the current scope? 
-             // Ideally we want to attach the id info to the scope chain.
-             // Let's create a child scope if we already have one, or just use it.
-             scope = { ...scope };
+             // Shallow copy to augment for this specific branch
+             newScope = { ...scope };
         }
         
-        // Initialize ID registry in scope if not present
-        if (!scope.$idRoots) scope.$idRoots = {};
-        
-        // For each name in ss-id, generate a unique ID
-        // Actually, ss-id declaratively says "this is a root for IDs of type X"
-        // Alpine: x-id="['text-input']"
-        // And then $id('text-input') returns "text-input-1" (stable for this instance)
+        if (!newScope.$idRoots) newScope.$idRoots = {};
         
         (Array.isArray(idNameArray) ? idNameArray : [idNameArray]).forEach(name => {
-             // Find next available ID for this name globally or within some context?
-             // Alpine uses a global incrementor but scoped retrieval.
-             // We need to store the "id state" on the element or scope.
-             if (!scope.$idRoots[name]) {
-                 // We need a global counter for 'name' to ensure uniqueness across the page?
-                 // Or just random? Alpine makes them stable if possible.
-                 // Simple implementation:
+             if (!newScope.$idRoots[name]) {
                  if (!window.__ssIdCounts) window.__ssIdCounts = {};
                  if (!window.__ssIdCounts[name]) window.__ssIdCounts[name] = 0;
                  const id = ++window.__ssIdCounts[name];
-                 scope.$idRoots[name] = id;
+                 newScope.$idRoots[name] = id;
              }
         });
         
-        // Update scope on element since we modified/forked it
-        el.__ssScope = scope;
-    }
-    
-    // If no scope, skip processing directives
-    if (!scope) {
-        // Still walk children in case they have ss-data
-        Array.from(el.children).forEach(child => walk(child, null));
-        return;
-    }
-    
-    // Handle ss-for (must be on template element)
-    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-for')) {
-        handleFor(el, el.getAttribute('ss-for'), scope);
-        return; // ss-for handles its own children
-    }
-    
-    // Handle ss-if (must be on template element)
-    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-if')) {
-        handleIf(el, el.getAttribute('ss-if'), scope);
-        return; // ss-if handles its own children
-    }
-
-    // Handle ss-teleport (must be on template element)
-    if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-teleport')) {
-        handleTeleport(el, el.getAttribute('ss-teleport'), scope);
-        return; 
-    }
-    
-    // Process all ss-* attributes
-    const attributes = Array.from(el.attributes);
-    
-    for (const attr of attributes) {
-        const name = attr.name;
-        const value = attr.value;
-        
-        // Skip ss-data (already processed) and ss-describe (metadata only)
-        if (name === 'ss-data' || name === 'ss-describe') continue;
-        
-        // Handle standard attributes
-        if (attributeHandlers[name]) {
-            attributeHandlers[name](el, value, scope);
-        }
-        // Handle ss-bind:[attr]
-        else if (name.startsWith('ss-bind:')) {
-            handleBind(el, name, value, scope);
-        }
-        // Handle ss-on:[event]
-        else if (name.startsWith('ss-on:')) {
-            handleEvent(el, name, value, scope);
-        }
-    }
-    
-    // Remove ss-cloak after processing
-    if (el.hasAttribute('ss-cloak')) {
-        el.removeAttribute('ss-cloak');
-    }
-    
-    // Walk children
-    Array.from(el.children).forEach(child => walk(child, scope));
+        return newScope;
+    });
 }
 
-// Set the walk function reference in directives module
-setWalkFunction(walk);
+function install$5() {
+    registerStructural('ss-for', (templateEl, expr, scope, walk) => {
+        // Parse "item in items"
+        const match = expr.match(/^\s*(?:\(([^,]+),\s*([^)]+)\)|([^\s]+))\s+in\s+(.+)$/);
+        if (!match) {
+            console.error('[SenangStart] Invalid ss-for expression:', expr);
+            return false;
+        }
+        
+        const itemName = (match[1] || match[3]).trim();
+        const indexName = (match[2] || 'index').trim();
+        const arrayExpr = match[4];
+        
+        const parent = templateEl.parentNode;
+        const anchor = document.createComment(`ss-for: ${expr}`);
+        parent.insertBefore(anchor, templateEl);
+        templateEl.remove();
+        
+        let currentNodes = [];
+        let lastItemsJSON = '';
+        
+        const update = () => {
+            const evaluator = createEvaluator(arrayExpr, scope, templateEl);
+            const items = evaluator() || [];
+            
+            const itemsJSON = JSON.stringify(items);
+            if (itemsJSON === lastItemsJSON) return;
+            lastItemsJSON = itemsJSON;
+            
+            currentNodes.forEach(node => node.remove());
+            currentNodes = [];
+            
+            items.forEach((item, index) => {
+                const clone = templateEl.content.cloneNode(true);
+                const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
+                
+                const itemScope = {
+                    data: createReactive({ 
+                        ...scope.data, 
+                        [itemName]: item, 
+                        [indexName]: index 
+                    }, () => {}),
+                    $refs: scope.$refs,
+                    $store: scope.$store,
+                    parentData: scope.data
+                };
+                
+                nodes.forEach(node => {
+                    parent.insertBefore(node, anchor);
+                    currentNodes.push(node);
+                    node.__ssScope = itemScope;
+                    if (walk) walk(node, itemScope);
+                });
+            });
+        };
+        
+        runEffect(update);
+        return true; // Stop walking the template element (it was removed)
+    });
+}
 
-/**
- * SenangStart Actions - MutationObserver
- * Watch for dynamically added elements
- * 
- * @module observer
- */
+function install$4() {
+    registerStructural('ss-if', (templateEl, expr, scope, walk) => {
+        const parent = templateEl.parentNode;
+        const anchor = document.createComment(`ss-if: ${expr}`);
+        parent.insertBefore(anchor, templateEl);
+        templateEl.remove();
+        
+        let currentNodes = [];
+        
+        const update = () => {
+            const evaluator = createEvaluator(expr, scope, templateEl);
+            const condition = !!evaluator();
+            
+            currentNodes.forEach(node => node.remove());
+            currentNodes = [];
+            
+            if (condition) {
+                const clone = templateEl.content.cloneNode(true);
+                const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
+                
+                nodes.forEach(node => {
+                    parent.insertBefore(node, anchor);
+                    currentNodes.push(node);
+                    if (walk) walk(node, scope);
+                });
+            }
+        };
+        
+        runEffect(update);
+        return true;
+    });
+}
 
+function install$3() {
+    registerStructural('ss-teleport', (templateEl, expr, scope, walk) => {
+        const targetSelector = expr;
+        let target = document.querySelector(targetSelector);
+        
+        const anchor = document.createComment(`ss-teleport: ${targetSelector}`);
+        templateEl.parentNode.insertBefore(anchor, templateEl);
+        templateEl.remove();
+        
+        if (!target) {
+            console.warn(`[SenangStart] ss-teleport target not found: ${targetSelector}`);
+            return true;
+        }
+        
+        const clone = templateEl.content.cloneNode(true);
+        const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
+        
+        nodes.forEach(node => {
+            target.appendChild(node);
+            if (walk) walk(node, scope);
+        });
+        
+        return true;
+    });
+}
 
-/**
- * Set up observer for dynamically added elements
- */
-function setupObserver() {
-    const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-            for (const node of mutation.addedNodes) {
-                if (node.nodeType === 1) {
-                    if (node.__ssScope) return;
+function install$2() {
+    registerAttribute('ss-bind', (el, attrName, expr, scope) => {
+        const attr = attrName.replace('ss-bind:', '');
+        
+        const update = () => {
+            const evaluator = createEvaluator(expr, scope, el);
+            const value = evaluator();
+            
+            if (attr === 'class') {
+                if (typeof value === 'string') {
+                    el.className = value;
+                } else if (typeof value === 'object') {
+                    Object.entries(value).forEach(([className, condition]) => {
+                        el.classList.toggle(className, !!condition);
+                    });
+                }
+            } else if (attr === 'style') {
+                if (typeof value === 'string') {
+                    el.style.cssText = value;
+                } else if (typeof value === 'object') {
+                    Object.assign(el.style, value);
+                }
+            } else if (value === false || value === null || value === undefined) {
+                el.removeAttribute(attr);
+            } else if (value === true) {
+                el.setAttribute(attr, '');
+            } else {
+                el.setAttribute(attr, value);
+            }
+        };
+        
+        runEffect(update);
+    });
+}
+
+function install$1() {
+    registerAttribute('ss-on', (el, attrName, expr, scope) => {
+        const parts = attrName.replace('ss-on:', '').split('.');
+        const eventName = parts[0];
+        const modifiers = parts.slice(1);
+        
+        const executor = createExecutor(expr, scope, el);
+        
+        const handler = (event) => {
+            if (modifiers.includes('prevent')) event.preventDefault();
+            if (modifiers.includes('stop')) event.stopPropagation();
+            if (modifiers.includes('self') && event.target !== el) return;
+            if (modifiers.includes('once')) {
+                el.removeEventListener(eventName, handler);
+            }
+            
+            if (event instanceof KeyboardEvent) {
+                const key = event.key.toLowerCase();
+                const keyModifiers = ['enter', 'escape', 'tab', 'space', 'up', 'down', 'left', 'right'];
+                const hasKeyModifier = modifiers.some(m => keyModifiers.includes(m));
+                
+                if (hasKeyModifier) {
+                    const keyMap = {
+                        'enter': 'enter',
+                        'escape': 'escape',
+                        'tab': 'tab',
+                        'space': ' ',
+                        'up': 'arrowup',
+                        'down': 'arrowdown',
+                        'left': 'arrowleft',
+                        'right': 'arrowright'
+                    };
                     
-                    // Check if node or any ancestor already has scope
-                    let current = node;
-                    let parentScope = null;
-                    
-                    while (current.parentElement) {
-                        current = current.parentElement;
-                        if (current.__ssScope) {
-                            parentScope = current.__ssScope;
-                            break;
-                        }
-                    }
-                    
-                    walk(node, parentScope);
+                    const shouldFire = modifiers.some(m => keyMap[m] === key);
+                    if (!shouldFire) return;
                 }
             }
+            
+            scope.data.$event = event;
+            executor();
+            delete scope.data.$event;
+        };
+        
+        if (modifiers.includes('window')) {
+            window.addEventListener(eventName, handler);
+        } else if (modifiers.includes('document')) {
+            document.addEventListener(eventName, handler);
+        } else {
+            el.addEventListener(eventName, handler);
         }
     });
-    
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
+}
+
+function install() {
+    // Inject style
+    if (typeof document !== 'undefined') {
+        const style = document.createElement('style');
+        style.textContent = '[ss-cloak] { display: none !important; }';
+        document.head.appendChild(style);
+    }
+
+    registerAttribute('ss-cloak', (el, expr, scope) => {
+        el.removeAttribute('ss-cloak');
     });
-    
-    return observer;
 }
 
 /**
@@ -1144,96 +1226,27 @@ function setupObserver() {
  */
 
 
-// =========================================================================
-// CSS Injection for ss-cloak
-// =========================================================================
-const style = document.createElement('style');
-style.textContent = '[ss-cloak] { display: none !important; }';
-document.head.appendChild(style);
+// Install all
+install$e();
+install$d();
+install$c();
+install$b();
+install$a();
+install$9();
+install$8();
+install$7();
+install$6();
+install$5();
+install$4();
+install$3();
+install$2();
+install$1();
+install();
 
-// =========================================================================
-// Internal State
-// =========================================================================
-const registeredDataFactories = {};  // SenangStart.data() registrations
-const stores = {};                   // SenangStart.store() registrations
-
-// Set references in walker module
-setReferences(registeredDataFactories, stores);
-
-// =========================================================================
-// Public API
-// =========================================================================
-
-const SenangStart = {
-    /**
-     * Register a reusable data component
-     * @param {string} name - Component name
-     * @param {Function} factory - Factory function returning data object
-     */
-    data(name, factory) {
-        if (typeof factory !== 'function') {
-            console.error('[SenangStart] data() requires a factory function');
-            return this;
-        }
-        registeredDataFactories[name] = factory;
-        return this;
-    },
-    
-    /**
-     * Register a global reactive store
-     * @param {string} name - Store name
-     * @param {Object} data - Store data object
-     */
-    store(name, data) {
-        if (typeof data !== 'object') {
-            console.error('[SenangStart] store() requires an object');
-            return this;
-        }
-        stores[name] = createReactive(data, () => {});
-        return this;
-    },
-    
-    /**
-     * Manually initialize a DOM tree
-     * @param {Element} root - Root element to initialize
-     */
-    init(root = document.body) {
-        walk(root, null);
-        return this;
-    },
-    
-    /**
-     * Start the framework
-     */
-    start() {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.init();
-                setupObserver();
-            });
-        } else {
-            this.init();
-            setupObserver();
-        }
-        return this;
-    },
-    
-    /**
-     * Version
-     */
-    version: '0.1.0'
-};
-
-// =========================================================================
 // Auto-start
-// =========================================================================
-
-// Expose globally
 if (typeof window !== 'undefined') {
     window.SenangStart = SenangStart;
 }
-
-// Auto-start when script loads
 SenangStart.start();
 
 export { SenangStart as default };

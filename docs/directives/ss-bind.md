@@ -2,6 +2,12 @@
 
 The `ss-bind` directive dynamically binds HTML attributes to expressions. Use it to set classes, styles, disabled states, and any other attribute based on your data.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-bind.min.js"></script>
+```
+
 ## Syntax
 
 ```html

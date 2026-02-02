@@ -2,6 +2,12 @@
 
 The `ss-cloak` directive hides an element until SenangStart has finished initializing it. This prevents the "flash of unrendered content" (FOUC) where users briefly see template syntax before it's replaced with actual data.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-cloak.min.js"></script>
+```
+
 ## Syntax
 
 ```html

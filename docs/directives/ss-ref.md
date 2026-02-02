@@ -2,6 +2,12 @@
 
 The `ss-ref` directive assigns a reference to an element that can be accessed programmatically via `$refs`.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-ref.min.js"></script>
+```
+
 ## Syntax
 
 ```html

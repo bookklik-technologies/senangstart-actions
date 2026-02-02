@@ -2,6 +2,12 @@
 
 The `ss-effect` directive runs a side effect whenever its dependencies change. It's useful for logging, API calls, or any action that should happen in response to data changes.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-effect.min.js"></script>
+```
+
 ## Syntax
 
 ```html

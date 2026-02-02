@@ -2,6 +2,12 @@
 
 The `ss-if` directive conditionally renders an element based on a condition. Unlike `ss-show`, it completely adds or removes elements from the DOM.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-if.min.js"></script>
+```
+
 ## Syntax
 
 ```html

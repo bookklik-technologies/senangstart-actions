@@ -2,6 +2,12 @@
 
 Arahan `ss-on` melampirkan pendengar peristiwa kepada elemen. Ia menyokong semua peristiwa DOM dengan modifier pilihan untuk corak biasa.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-on.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

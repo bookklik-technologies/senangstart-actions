@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import '../../src/index.js'; // Register all directives
 import { walk, setReferences } from '../../src/walker.js';
 import { createReactive } from '../../src/reactive.js';
 

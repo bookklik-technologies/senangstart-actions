@@ -2,6 +2,12 @@
 
 Arahan `ss-model` mencipta pengikatan data dua hala antara elemen borang dan sifat data. Apabila input berubah, data dikemas kini. Apabila data dikemas kini, input mencerminkan perubahan.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-model.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

@@ -2,6 +2,12 @@
 
 Arahan `ss-ref` menetapkan rujukan kepada elemen yang boleh diakses secara pengaturcaraan melalui `$refs`.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-ref.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

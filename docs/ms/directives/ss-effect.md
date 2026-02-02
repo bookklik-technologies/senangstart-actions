@@ -2,6 +2,12 @@
 
 Arahan `ss-effect` menjalankan kesan sampingan apabila kebergantungannya berubah. Ia berguna untuk logging, panggilan API, atau sebarang tindakan yang perlu berlaku sebagai respons kepada perubahan data.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-effect.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

@@ -2,6 +2,12 @@
 
 The `ss-text` directive binds the text content of an element to a JavaScript expression. The content updates automatically when the underlying data changes.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-text.min.js"></script>
+```
+
 ## Syntax
 
 ```html

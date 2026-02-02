@@ -7,100 +7,48 @@
  * @module senangstart-actions
  */
 
-import { createReactive } from './reactive.js';
-import { walk, setReferences } from './walker.js';
-import { setupObserver } from './observer.js';
+import SenangStart from './core/senangstart.js';
 
-// =========================================================================
-// CSS Injection for ss-cloak
-// =========================================================================
-const style = document.createElement('style');
-style.textContent = '[ss-cloak] { display: none !important; }';
-document.head.appendChild(style);
+// Import and install all directives
+import { install as installText } from './directives/text.js';
+import { install as installHtml } from './directives/html.js';
+import { install as installShow } from './directives/show.js';
+import { install as installModel } from './directives/model.js';
+import { install as installRef } from './directives/ref.js';
+import { install as installInit } from './directives/init.js';
+import { install as installEffect } from './directives/effect.js';
+import { install as installData } from './directives/data.js';
+import { install as installId } from './directives/id.js';
+import { install as installFor } from './directives/for.js';
+import { install as installIf } from './directives/if.js';
+import { install as installTeleport } from './directives/teleport.js';
+import { install as installBind } from './directives/bind.js';
+import { install as installOn } from './directives/on.js';
+import { install as installCloak } from './directives/cloak.js';
+import { install as installTransition } from './directives/transition.js';
 
-// =========================================================================
-// Internal State
-// =========================================================================
-const registeredDataFactories = {};  // SenangStart.data() registrations
-const stores = {};                   // SenangStart.store() registrations
+// Install all
+installText();
+installHtml();
+installShow();
+installModel();
+installRef();
+installInit();
+installEffect();
+installData();
+installId();
+installFor();
+installIf();
+installTeleport();
+installBind();
+installOn();
+installCloak();
+installTransition();
 
-// Set references in walker module
-setReferences(registeredDataFactories, stores);
-
-// =========================================================================
-// Public API
-// =========================================================================
-
-const SenangStart = {
-    /**
-     * Register a reusable data component
-     * @param {string} name - Component name
-     * @param {Function} factory - Factory function returning data object
-     */
-    data(name, factory) {
-        if (typeof factory !== 'function') {
-            console.error('[SenangStart] data() requires a factory function');
-            return this;
-        }
-        registeredDataFactories[name] = factory;
-        return this;
-    },
-    
-    /**
-     * Register a global reactive store
-     * @param {string} name - Store name
-     * @param {Object} data - Store data object
-     */
-    store(name, data) {
-        if (typeof data !== 'object') {
-            console.error('[SenangStart] store() requires an object');
-            return this;
-        }
-        stores[name] = createReactive(data, () => {});
-        return this;
-    },
-    
-    /**
-     * Manually initialize a DOM tree
-     * @param {Element} root - Root element to initialize
-     */
-    init(root = document.body) {
-        walk(root, null);
-        return this;
-    },
-    
-    /**
-     * Start the framework
-     */
-    start() {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.init();
-                setupObserver();
-            });
-        } else {
-            this.init();
-            setupObserver();
-        }
-        return this;
-    },
-    
-    /**
-     * Version
-     */
-    version: '0.1.0'
-};
-
-// =========================================================================
 // Auto-start
-// =========================================================================
-
-// Expose globally
 if (typeof window !== 'undefined') {
     window.SenangStart = SenangStart;
 }
-
-// Auto-start when script loads
 SenangStart.start();
 
 export default SenangStart;

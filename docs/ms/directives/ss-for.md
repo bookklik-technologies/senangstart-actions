@@ -2,6 +2,12 @@
 
 Arahan `ss-for` merender senarai elemen dengan mengiterasi melalui array. Setiap iterasi mempunyai akses kepada item semasa dan indeks pilihan.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-for.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

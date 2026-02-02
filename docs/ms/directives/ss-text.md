@@ -2,6 +2,12 @@
 
 Arahan `ss-text` mengikat kandungan teks elemen kepada ekspresi JavaScript. Kandungan dikemas kini secara automatik apabila data berubah.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-text.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

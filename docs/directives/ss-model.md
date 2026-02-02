@@ -2,6 +2,12 @@
 
 The `ss-model` directive creates two-way data binding between form elements and data properties. When the input changes, the data updates. When the data updates, the input reflects the change.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-model.min.js"></script>
+```
+
 ## Syntax
 
 ```html

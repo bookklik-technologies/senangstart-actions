@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import '../../src/index.js'; // Register all directives
 import { walk } from '../../src/walker.js';
 import { createEvaluator } from '../../src/evaluator.js';
 

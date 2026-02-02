@@ -2,6 +2,12 @@
 
 The `ss-for` directive renders a list of elements by iterating over an array. Each iteration has access to the current item and optional index.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-for.min.js"></script>
+```
+
 ## Syntax
 
 ```html

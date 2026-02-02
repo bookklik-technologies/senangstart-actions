@@ -2,6 +2,12 @@
 
 Arahan `ss-show` togol keterlihatan elemen berdasarkan syarat. Ia menggunakan CSS `display: none` untuk menyembunyikan elemen sambil mengekalkannya dalam DOM.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-show.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

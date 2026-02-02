@@ -2,6 +2,12 @@
 
 Arahan `ss-bind` mengikat atribut HTML secara dinamik kepada ekspresi. Gunakannya untuk menetapkan kelas, gaya, keadaan disabled, dan sebarang atribut lain berdasarkan data anda.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-bind.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

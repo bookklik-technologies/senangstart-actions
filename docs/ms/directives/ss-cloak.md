@@ -2,6 +2,12 @@
 
 Arahan `ss-cloak` menyembunyikan elemen sehingga SenangStart selesai menginisialisasinya. Ini menghalang "flash of unrendered content" (FOUC) di mana pengguna melihat sintaks template sebelum ia diganti dengan data sebenar.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-cloak.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

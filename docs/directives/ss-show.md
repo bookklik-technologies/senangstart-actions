@@ -2,6 +2,12 @@
 
 The `ss-show` directive toggles the visibility of an element based on a condition. It uses CSS `display: none` to hide elements while keeping them in the DOM.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-show.min.js"></script>
+```
+
 ## Syntax
 
 ```html

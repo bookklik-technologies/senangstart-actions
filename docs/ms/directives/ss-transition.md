@@ -2,6 +2,12 @@
 
 Arahan `ss-transition` membolehkan anda menggunakan transisi CSS kepada elemen apabila ia masuk atau keluar dari DOM (ditogol melalui `ss-show` atau `ss-if`).
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-transition.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

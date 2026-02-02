@@ -2,6 +2,12 @@
 
 Arahan `ss-data` mentakrifkan skop data reaktif untuk elemen dan semua anak-anaknya. Ini adalah asas kepada reaktiviti SenangStart Actions.
 
+## CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions@latest/dist/senangstart-actions-data.min.js"></script>
+```
+
 ## Sintaks
 
 ```html

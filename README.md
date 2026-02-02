@@ -35,6 +35,13 @@ Include the script and use `ss-*` directives in your HTML:
 - `ss-show`: Toggle visibility (display: none)
 - `ss-for`: Loop over arrays/objects
 - `ss-bind:[attr]`: Bind attributes dynamically
+- `ss-cloak`: Hide element until compiled
+- `ss-ref`: Reference element in `$refs`
+- `ss-init`: Run expression on initialization
+- `ss-effect`: Run side effects reactively
+- `ss-id`: Generate unique IDs
+- `ss-teleport`: Teleport content to another DOM location
+- `ss-transition`: Configure enter/leave transitions
 
 ## Development
 
