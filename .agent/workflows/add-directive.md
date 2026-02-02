@@ -6,150 +6,106 @@ description: Add a new ss-* directive to the framework
 
 ## Overview
 
-This workflow guides you through adding a new `ss-*` directive to SenangStart Actions.
+This workflow guides you through adding a new `ss-*` directive to SenangStart Actions using the modular architecture.
 
 ## Steps
 
-### 1. Determine Directive Type
+### 1. Implement the Directive
 
-Decide which handler file the directive belongs in:
+Create a new file in `src/directives/[name].js`. 
 
-| Type | File | Examples |
-|------|------|----------|
-| Simple attribute | `src/handlers/attributes.js` | ss-text, ss-html, ss-show, ss-model |
-| Dynamic attribute | `src/handlers/bind.js` | ss-bind:[attr] |
-| Event handling | `src/handlers/events.js` | ss-on:[event] |
-| Template/structural | `src/handlers/directives.js` | ss-for, ss-if |
-
-### 2. Implement the Handler
-
-For **attribute handlers** (`attributes.js`), add to the `attributeHandlers` object:
-
+**Template:**
 ```javascript
-'ss-newdirective': (el, expr, scope) => {
-    const update = () => {
-        const evaluator = createEvaluator(expr, scope, el);
-        const value = evaluator();
-        // Apply logic to element
-    };
-    runEffect(update);  // Makes it reactive
-},
-```
+import { registerAttribute } from '../core/registry.js';
+import { createEvaluator } from '../evaluator.js';
+import { runEffect } from '../reactive.js';
 
-For **structural directives** (`directives.js`):
-
-```javascript
-export function handleNewDirective(templateEl, expr, scope) {
-    const anchor = document.createComment(`ss-newdirective: ${expr}`);
-    // Handle template cloning and DOM manipulation
-    
-    const update = () => {
-        // React to data changes
-    };
-    
-    runEffect(update);
+export function install() {
+    registerAttribute('ss-yourdirective', (el, expr, scope) => {
+        // Setup logic
+        
+        const update = () => {
+            const evaluator = createEvaluator(expr, scope, el);
+            const value = evaluator();
+            // Update logic
+        };
+        
+        runEffect(update); // Make it reactive
+    });
 }
 ```
 
-### 3. Register in Walker (if needed)
+### 2. Create the Bundle Entry Point
 
-For new structural directives, update `src/walker.js`:
+Create a new file in `src/entries/[name].js`.
 
+**Template:**
 ```javascript
-// Add import
-import { handleNewDirective } from './handlers/directives.js';
+import SenangStart from '../core/senangstart.js';
+import { install } from '../directives/yourdirective.js';
 
-// Add handling logic in walk() function
-if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-newdirective')) {
-    handleNewDirective(el, el.getAttribute('ss-newdirective'), scope);
-    return;
+install();
+
+if (typeof window !== 'undefined') {
+    window.SenangStart = SenangStart;
 }
+SenangStart.start();
+
+export default SenangStart;
 ```
 
-### 4. Export Handler (if new file or new export)
+### 3. Update Build Configuration
 
-Update `src/handlers/index.js` if adding new exports:
+Open `rollup.config.js` and add your directive name to the `directives` array:
 
 ```javascript
-export { handleNewDirective } from './directives.js';
+const directives = [
+    'data', 'text', ..., 'yourdirective'
+];
+```
+
+### 4. Register in Main Entry (Optional)
+
+If this directive should be part of the main default bundle, import and install it in `src/index.js`.
+
+```javascript
+import { install as installYourDirective } from './directives/yourdirective.js';
+
+// ... inside the main installation function
+installYourDirective();
 ```
 
 ### 5. Write Tests
 
-Create tests in `tests/`:
+Create `tests/[name].test.js`:
 
 ```javascript
-// tests/newdirective.test.js or add to existing test file
-describe('ss-newdirective', () => {
-    it('should handle basic case', async () => {
-        document.body.innerHTML = `
-            <div ss-data="{ value: 'test' }">
-                <span ss-newdirective="value"></span>
-            </div>
-        `;
+import { describe, it, expect } from 'vitest';
+import { install } from '../src/directives/yourdirective.js';
+
+describe('ss-yourdirective', () => {
+    it('works', async () => {
+        install(); // Register the directive
+        document.body.innerHTML = `<div ss-yourdirective="..."></div>`;
         
-        // Trigger walk
+        // ... trigger walk/updates
         const { walk } = await import('../src/walker.js');
-        walk(document.body, null);
+        walk(document.body);
         
         await new Promise(r => queueMicrotask(r));
-        
-        expect(/* assertion */).toBe(/* expected */);
+        // assertions
     });
 });
 ```
 
-// turbo
-6. Run tests:
+### 6. Document the Directive
 
+Create `docs/directives/ss-yourdirective.md` and add it to `docs/.vitepress/config.js` sidebar.
+
+### 7. Build and Verification
+
+// turbo
 ```bash
 npm run test
-```
-
-### 7. Document the Directive
-
-Create `docs/directives/ss-newdirective.md`:
-
-```markdown
----
-title: ss-newdirective
-description: Description of what the directive does
----
-
-# ss-newdirective
-
-## Overview
-Brief description...
-
-## Syntax
-\`\`\`html
-<element ss-newdirective="expression"></element>
-\`\`\`
-
-## Examples
-### Basic Usage
-...
-
-## Related
-- [ss-related](./ss-related.md)
-```
-
-### 8. Update Documentation Config
-
-Add to sidebar in `docs/.vitepress/config.js` under directives section.
-
-### 9. Build and Verify
-
-// turbo
-```bash
 npm run build
-npm run docs:dev
 ```
-
-## Best Practices
-
-- Use `createEvaluator()` for expressions returning values
-- Use `createExecutor()` for expressions with side effects
-- Wrap updates in `runEffect()` for reactivity
-- Access magic properties via scope: `$el`, `$refs`, `$store`, `$dispatch`
-- Handle cleanup for removed elements (event listeners, observers)

@@ -14,20 +14,24 @@ description: Build production bundles and prepare for release
 npm run build
 ```
 
-This generates three bundles in `dist/`:
+This generates a comprehensive set of bundles in `dist/`, supporting both a monolithic approach and a modular architecture.
 
-| File | Format | Use Case |
-|------|--------|----------|
-| `senangstart-actions.js` | IIFE | Browser `<script>` tag |
-| `senangstart-actions.min.js` | IIFE (minified) | Production CDN (unpkg, jsDelivr) |
-| `senangstart-actions.esm.js` | ES Module | Modern bundlers, `import` |
+### Build Artifacts
 
-## Build Configuration
+| Bundle Type | File Pattern | Description |
+|-------------|--------------|-------------|
+| **Main Bundle** | `senangstart-actions.{js, min.js, esm.js}` | Complete framework with all standard directives. Use this for quick start. |
+| **Core Bundle** | `senangstart-actions-core.{js, min.js}` | The core runtime (reactivity, observer, walker) without any directives. |
+| **Directive Bundles** | `senangstart-actions-[name].{js, min.js}` | Standalone bundles for individual directives (e.g., `ss-text`, `ss-for`). |
+
+### Build Configuration
 
 Rollup configuration in `rollup.config.js`:
-- Entry: `src/index.js`
-- Terser plugin for minification
-- Banner with version and license info
+- **Main Entry**: `src/index.js`
+- **Core Entry**: `src/core/senangstart.js`
+- **Directive Entries**: `src/entries/[name].js`
+- **Format**: IIFE (for browser) and ESM (for bundlers).
+- **Minification**: Uses `@rollup/plugin-terser`.
 
 ## Pre-Release Checklist
 
@@ -37,7 +41,7 @@ Rollup configuration in `rollup.config.js`:
 "version": "X.Y.Z"
 ```
 
-3. Update version in `src/index.js`:
+3. Update version in `src/index.js` (if exposed):
 
 ```javascript
 version: 'X.Y.Z'
@@ -83,12 +87,15 @@ npm publish --access public
 
 ## CDN Distribution
 
-After publishing, the library is available via:
-- unpkg: `https://unpkg.com/@bookklik/senangstart-actions`
-- jsDelivr: `https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions`
+After publishing, the library is available via unpkg or jsDelivr.
+Example for modular loading:
+```html
+<script src="https://unpkg.com/@bookklik/senangstart-actions/dist/senangstart-actions-core.min.js"></script>
+<script src="https://unpkg.com/@bookklik/senangstart-actions/dist/senangstart-actions-text.min.js"></script>
+```
 
 ## What Gets Published
 
-The `files` field in `package.json` includes only:
+The `files` field in `package.json` includes:
 - `src/` - Source files
 - `dist/` - Built bundles

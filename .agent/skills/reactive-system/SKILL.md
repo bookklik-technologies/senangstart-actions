@@ -189,6 +189,5 @@ console.log(pendingEffects);
 
 The reactive system is used by:
 - `walker.js`: Creates reactive scope for `ss-data`
-- `handlers/attributes.js`: All handlers use `runEffect()` for reactive DOM updates
-- `handlers/directives.js`: `ss-for` creates reactive child scopes
+- `src/directives/*.js`: All directive handlers use `runEffect()` for reactive DOM updates
 - `evaluator.js`: `$watch` adds to subscribers directly

@@ -7,183 +7,110 @@ description: Guide for implementing new ss-* directives in SenangStart Actions
 
 ## Overview
 
-Directives are the core building blocks of SenangStart Actions. They transform HTML attributes into reactive behaviors.
+Directives are the core building blocks of SenangStart Actions. They transform HTML attributes into reactive behaviors. In the new modular architecture, each directive is a self-contained module.
 
-## Directive Categories
+## Directive Location
 
-| Category | Location | Pattern | Examples |
-|----------|----------|---------|----------|
-| Attribute | `handlers/attributes.js` | `ss-name` | ss-text, ss-html, ss-show |
-| Dynamic Attr | `handlers/bind.js` | `ss-bind:attr` | ss-bind:class, ss-bind:disabled |
-| Event | `handlers/events.js` | `ss-on:event` | ss-on:click, ss-on:keydown.enter |
-| Structural | `handlers/directives.js` | `ss-name` on `<template>` | ss-for, ss-if |
+All directives are located in `src/directives/`. Each directive has its own file (e.g., `src/directives/text.js`).
+
+## File Structure
+
+### 1. Directive Implementation (`src/directives/[name].js`)
+
+This is where the logic resides. It exports an `install` function that registers the directive.
+
+```javascript
+import { registerAttribute } from '../core/registry.js';
+import { createEvaluator } from '../evaluator.js';
+import { runEffect } from '../reactive.js';
+
+export function install() {
+    registerAttribute('ss-example', (el, expr, scope) => {
+        // Setup logic (runs once)
+        
+        const update = () => {
+            const evaluator = createEvaluator(expr, scope, el);
+            const value = evaluator();
+            // Update logic (runs reactively)
+            el.textContent = value;
+        };
+        
+        // Make it reactive
+        runEffect(update);
+    });
+}
+```
+
+### 2. Bundle Entry Point (`src/entries/[name].js`)
+
+This is the entry point for the standalone directive bundle.
+
+```javascript
+import SenangStart from '../core/senangstart.js';
+import { install } from '../directives/example.js';
+
+install();
+
+if (typeof window !== 'undefined') {
+    window.SenangStart = SenangStart;
+}
+SenangStart.start();
+
+export default SenangStart;
+```
 
 ## Handler Signature
 
-All handlers receive the same parameters:
+The handler function passed to `registerAttribute` receives:
 
 ```javascript
-function handler(el, value, scope) {
-    // el: The DOM element with the directive
-    // value: The attribute value (expression string)
-    // scope: { data, $refs, $store }
+(el, expr, scope) => {
+    // el: The DOM element
+    // expr: The attribute value (string)
+    // scope: The reactive scope { data, $refs, ... }
 }
 ```
 
-## Creating an Attribute Directive
+## Creating different types of Directives
 
-### Basic Pattern
+### Attribute Directive (e.g. `ss-text`)
 
-```javascript
-// In handlers/attributes.js
-'ss-example': (el, expr, scope) => {
-    const update = () => {
-        const evaluator = createEvaluator(expr, scope, el);
-        const result = evaluator();
-        // Apply result to element
-    };
-    runEffect(update);
-},
-```
-
-### Key Components
-
-1. **`createEvaluator()`** - Evaluates expression and returns value
-2. **`runEffect()`** - Makes the handler reactive to data changes
-3. **`scope.data`** - Access the reactive data object
-
-### Example: ss-uppercase
+Used for updating properties or attributes of an element.
 
 ```javascript
-'ss-uppercase': (el, expr, scope) => {
-    const update = () => {
-        const evaluator = createEvaluator(expr, scope, el);
-        el.textContent = String(evaluator() ?? '').toUpperCase();
-    };
-    runEffect(update);
-},
+registerAttribute('ss-text', (el, expr, scope) => {
+    runEffect(() => {
+        const value = createEvaluator(expr, scope, el)();
+        el.textContent = value;
+    });
+});
 ```
 
-## Creating a Dynamic Attribute Directive
+### Structural Directive (e.g. `ss-if`)
 
-### Pattern for ss-bind:*
+Used for manipulating the DOM structure (templates).
+
+**Note:** Structural directives usually need to be handled carefully in the walker, but the basic pattern for simple cases involves `createEvaluator` and DOM manipulation. Use the existing `src/directives/if.js` or `for.js` as reference for complex structural logic.
+
+### Event Directive (e.g. `ss-on`)
+
+Used for handling events.
 
 ```javascript
-// In handlers/bind.js
-export function handleBind(el, attrName, expr, scope) {
-    const attr = attrName.replace('ss-bind:', '');
-    
-    const update = () => {
-        const evaluator = createEvaluator(expr, scope, el);
-        const value = evaluator();
-        
-        // Special cases
-        if (attr === 'class') {
-            // Handle object or string
-        } else if (attr === 'style') {
-            // Handle object or string
-        } else if (value === null || value === false) {
-            el.removeAttribute(attr);
-        } else {
-            el.setAttribute(attr, value);
-        }
-    };
-    
-    runEffect(update);
-}
+registerAttribute('ss-on', (el, expr, scope) => {
+    // Parsing logic for modifiers...
+    el.addEventListener('click', (e) => {
+        // ...
+    });
+});
 ```
 
-## Creating an Event Directive
+## Key Components
 
-### Pattern for ss-on:*
-
-```javascript
-// In handlers/events.js
-export function handleEvent(el, attrName, expr, scope) {
-    const parts = attrName.replace('ss-on:', '').split('.');
-    const eventName = parts[0];
-    const modifiers = parts.slice(1);
-    
-    const executor = createExecutor(expr, scope, el);  // Note: executor not evaluator
-    
-    const handler = (event) => {
-        // Apply modifiers
-        if (modifiers.includes('prevent')) event.preventDefault();
-        if (modifiers.includes('stop')) event.stopPropagation();
-        
-        // Make $event available
-        scope.data.$event = event;
-        executor();
-        delete scope.data.$event;
-    };
-    
-    el.addEventListener(eventName, handler);
-}
-```
-
-### Differences: Evaluator vs Executor
-
-| | `createEvaluator()` | `createExecutor()` |
-|---|---|---|
-| Returns | Value of expression | undefined |
-| Expression | `return (${expr})` | `${expr}` |
-| Use for | Reading values | Side effects |
-| Example | `count + 1` | `count++` |
-
-## Creating a Structural Directive
-
-Structural directives (like `ss-for`, `ss-if`) work with `<template>` elements.
-
-### Pattern
-
-```javascript
-export function handleStructural(templateEl, expr, scope) {
-    // 1. Create anchor comment
-    const parent = templateEl.parentNode;
-    const anchor = document.createComment(`ss-directive: ${expr}`);
-    parent.insertBefore(anchor, templateEl);
-    templateEl.remove();
-    
-    let currentNodes = [];  // Track rendered nodes
-    
-    const update = () => {
-        // 2. Evaluate condition/expression
-        const evaluator = createEvaluator(expr, scope, templateEl);
-        const result = evaluator();
-        
-        // 3. Remove old nodes
-        currentNodes.forEach(node => node.remove());
-        currentNodes = [];
-        
-        // 4. Clone and insert template content
-        if (shouldRender) {
-            const clone = templateEl.content.cloneNode(true);
-            const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
-            
-            nodes.forEach(node => {
-                parent.insertBefore(node, anchor);
-                currentNodes.push(node);
-                walkFn(node, scope);  // Process child directives
-            });
-        }
-    };
-    
-    runEffect(update);
-}
-```
-
-### Registering Structural Directives
-
-In `handlers/directives.js`, export the function.
-
-In `walker.js`, add handling before regular attribute processing:
-
-```javascript
-if (el.tagName === 'TEMPLATE' && el.hasAttribute('ss-newdirective')) {
-    handleNewDirective(el, el.getAttribute('ss-newdirective'), scope);
-    return;  // Important: don't process children normally
-}
-```
+1. **`registerAttribute(name, handler)`** - Registers the directive globally.
+2. **`createEvaluator(expr, scope, el)`** - Returns a function that evaluates the expression.
+3. **`runEffect(fn)`** - Runs the function and tracks dependencies.
+4. **`scope`** - Parameter containing access to `data`, `$refs`, etc.
 
 ## Magic Properties
 
@@ -195,67 +122,34 @@ Available in all expressions via `evaluator.js`:
 | `$refs` | Object of `ss-ref` elements |
 | `$store` | Global stores |
 | `$data` | The reactive data object |
-| `$dispatch(name, detail)` | Dispatch custom event |
-| `$watch(prop, callback)` | Watch property changes |
-| `$nextTick(fn)` | Run after DOM updates |
+| `$dispatch` | Dispatch custom event |
+| `$watch` | Watch property changes |
+| `$nextTick` | Run after DOM updates |
 
-## Testing Directives
+## Testing
+
+Create a test file in `tests/unit/[name].test.js`.
 
 ```javascript
 import { describe, it, expect } from 'vitest';
+import { install } from '../../src/directives/example.js';
 
 describe('ss-example', () => {
-    it('should work', async () => {
+    it('updates content', async () => {
+        install(); // Register the directive
+        
         document.body.innerHTML = `
-            <div ss-data="{ value: 'test' }">
-                <span ss-example="value"></span>
+            <div ss-data="{ val: 'hello' }">
+                <span ss-example="val"></span>
             </div>
         `;
         
-        const { walk } = await import('../src/walker.js');
-        walk(document.body, null);
+        const { walk } = await import('../../src/walker.js');
+        walk(document.body);
         
         await new Promise(r => queueMicrotask(r));
         
-        expect(document.querySelector('span').textContent).toBe('TEST');
+        expect(document.querySelector('span').textContent).toBe('hello');
     });
 });
-```
-
-## Documentation Template
-
-```markdown
----
-title: ss-newdirective
----
-
-# ss-newdirective
-
-## Overview
-One sentence description.
-
-## Syntax
-\`\`\`html
-<element ss-newdirective="expression"></element>
-\`\`\`
-
-## Parameters
-| Name | Type | Description |
-|------|------|-------------|
-| expression | String | What the expression does |
-
-## Examples
-
-### Basic Usage
-\`\`\`html
-<div ss-data="{ value: 'Hello' }">
-    <span ss-newdirective="value">Placeholder</span>
-</div>
-\`\`\`
-
-### Advanced Usage
-...
-
-## Related
-- [ss-related](./ss-related.md)
 ```

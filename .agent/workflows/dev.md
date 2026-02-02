@@ -26,17 +26,29 @@ This runs `npx -y serve .` which serves the project at `http://localhost:3000`.
 
 ## Development Cycle
 
-2. Open `examples/index.html` in browser to test directives
+2. Open `examples/index.html` in browser to test directives.
 
-3. Edit source files in `src/`:
-   - `index.js` - Main entry point, public API
-   - `reactive.js` - Reactive proxy system
-   - `evaluator.js` - Expression evaluation with magic properties
-   - `walker.js` - DOM tree traversal
-   - `observer.js` - MutationObserver for dynamic content
-   - `handlers/` - Directive implementations
+3. Edit source files in `src/`. The project is structured as follows:
 
-4. Refresh browser to see changes (no HMR - manual refresh required)
+```
+src/
+├── core/              # Core framework logic (registry, runtime)
+│   ├── senangstart.js # Core entry point
+│   └── registry.js    # Directive/Attribute registry
+├── directives/        # Individual directive implementations
+│   ├── text.js
+│   ├── if.js
+│   └── ...
+├── entries/           # Entry points for directive bundles
+├── handlers/          # Shared handler utilities
+├── evaluator.js       # Expression evaluation
+├── observer.js        # DOM MutationObserver
+├── reactive.js        # Reactivity engine
+├── walker.js          # DOM walker
+└── index.js           # Main package entry point
+```
+
+4. Refresh browser to see changes (manual refresh required).
 
 5. Run tests to verify changes:
 
@@ -44,25 +56,8 @@ This runs `npx -y serve .` which serves the project at `http://localhost:3000`.
 npm run test
 ```
 
-## File Structure
-
-```
-src/
-├── index.js           # Entry point, SenangStart public API
-├── reactive.js        # Proxy-based reactivity system
-├── evaluator.js       # Expression evaluation ($el, $refs, $dispatch, etc.)
-├── walker.js          # DOM traversal and ss-data scope handling
-├── observer.js        # MutationObserver for dynamic DOM
-└── handlers/
-    ├── index.js       # Handler exports
-    ├── attributes.js  # ss-text, ss-html, ss-show, ss-model, etc.
-    ├── bind.js        # ss-bind:[attr] handler
-    ├── directives.js  # ss-for, ss-if handlers
-    └── events.js      # ss-on:[event] handler with modifiers
-```
-
 ## Hot Tips
 
-- Use `ss-cloak` on elements to hide them until SenangStart initializes
-- Test reactive updates by modifying state in browser console: `document.querySelector('[ss-data]').__ssScope.data.variableName = newValue`
-- The framework auto-starts on script load, no manual initialization needed
+- **Modular Testing**: To test specific directives, use the example files in `examples/` which often load the full build, but you can create custom test files.
+- **Console Debugging**: Access internal state via `document.querySelector('[ss-*]').__ssScope`.
+- **New Directives**: If creating a new directive, follow the [add-directive](./add-directive.md) workflow.

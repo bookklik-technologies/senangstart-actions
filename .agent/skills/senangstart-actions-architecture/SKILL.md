@@ -7,122 +7,91 @@ description: Understanding the core architecture and module structure of the Sen
 
 ## Overview
 
-SenangStart Actions is a lightweight, declarative UI framework that uses `ss-*` HTML attributes to create reactive components **without a build step**. It's designed for both humans and AI agents to easily understand and generate.
+SenangStart Actions is a lightweight, declarative UI framework that uses `ss-*` HTML attributes to create reactive components. It is designed to be modular, allowing usage of the full framework or individual directives.
 
 ## Core Principles
 
-1. **Declarative HTML** - State and behavior defined via HTML attributes
-2. **Automatic Reactivity** - Proxy-based change detection with dependency tracking
-3. **Scoped Components** - `ss-data` creates isolated reactive scopes
-4. **No Build Step** - Works directly in browser via script tag
-5. **AI-Friendly** - Simple, predictable patterns for LLM-generated code
+1.  **Declarative HTML** - State and behavior defined via HTML attributes.
+2.  **Automatic Reactivity** - Proxy-based change detection with dependency tracking.
+3.  **Modular Design** - Split into Core, Directives, and Bundles.
+4.  **No Build Step Required** - Can be used directly in browser.
+5.  **AI-Friendly** - Simple patterns for LLM generation.
 
 ## Module Architecture
 
+The codebase handles the split between the core runtime and individual directives.
+
 ```
 src/
-├── index.js        # Entry point, public API, auto-start
-├── reactive.js     # Proxy-based reactive system
-├── evaluator.js    # Expression evaluation with magic properties
-├── walker.js       # DOM traversal and scope management
-├── observer.js     # MutationObserver for dynamic DOM
-└── handlers/
-    ├── index.js       # Handler exports
-    ├── attributes.js  # Basic attribute handlers
-    ├── bind.js        # Dynamic attribute binding
-    ├── directives.js  # Template directives (ss-for, ss-if)
-    └── events.js      # Event handling with modifiers
+├── core/              # Core framework logic
+│   ├── senangstart.js # Main instance & public API
+│   └── registry.js    # Directive registry
+├── directives/        # Individual directive implementations
+│   ├── text.js
+│   ├── if.js
+│   ├── ...
+├── entries/           # Entry points for directive bundles
+│   ├── text.js
+│   ├── ...
+├── evaluator.js       # Expression evaluation
+├── observer.js        # DOM MutationObserver
+├── reactive.js        # Reactivity engine
+├── walker.js          # DOM walker & scope management
+└── index.js           # Main package entry point (Full Bundle)
 ```
 
 ## Data Flow
 
 ```
-1. Page Load
+1. Initialization
    └─> SenangStart.start()
        └─> walk(document.body)
-           └─> Find ss-data, create scope
-               └─> Process ss-* attributes
-                   └─> runEffect() for reactivity
 
-2. User Interaction
-   └─> Event handler updates scope.data
-       └─> Proxy traps set()
-           └─> scheduleUpdate() (batched)
-               └─> Run pending effects
-                   └─> Update DOM
+2. Component Creation
+   └─> Found `ss-data`
+       └─> Create Scope (Proxy)
+       └─> Process Children
+
+3. Directive Execution
+   └─> `ss-text="msg"` found
+       └─> Look up handler in Registry
+       └─> Run Handler
+           └─> runEffect() -> Track Dependencies
 ```
 
 ## Key Concepts
 
+### Registry (`src/core/registry.js`)
+Central place where all directives are registered. Replaces the old hardcoded `handlers/` mapping.
+`registerAttribute('ss-name', handler)`
+
 ### Scope
+Created for each `ss-data`. Contains:
+- `data`: The reactive state.
+- `$refs`: Element references.
+- `$store`: Global state.
 
-A scope is created for each `ss-data` element:
-
-```javascript
-scope = {
-    data: reactiveProxy,  // Reactive data object
-    $refs: {},            // Element references (ss-ref)
-    $store: globalStores  // Global stores
-}
-```
-
-Stored on element as `element.__ssScope`.
-
-### Reactive Proxy
-
-The reactive system uses JavaScript Proxy:
-- **Get trap**: Tracks which properties are accessed by each effect
-- **Set trap**: Triggers re-run of effects that depend on changed property
-- **Batching**: Multiple changes in same tick are batched into single DOM update
-
-### Effects
-
-Effects are functions that:
-1. Execute and track which reactive properties they access
-2. Re-run automatically when those properties change
-
-```javascript
-runEffect(() => {
-    // This effect re-runs when `expr` dependencies change
-    const evaluator = createEvaluator(expr, scope, el);
-    el.innerText = evaluator();
-});
-```
-
-### Expression Evaluation
-
-Expressions are evaluated in a sandboxed context with:
-- All `scope.data` properties available directly
-- Magic properties: `$el`, `$refs`, `$store`, `$dispatch`, `$watch`, `$nextTick`, `$data`
+### Reactivity
+Uses `src/reactive.js`.
+- **Proxy**: Intercepts get/set.
+- **Effects**: Functions that re-run when dependencies change.
 
 ## Bundle Formats
 
-| Format | File | Global Variable | Use |
-|--------|------|-----------------|-----|
-| IIFE | `senangstart-actions.js` | `window.SenangStart` | `<script>` tag |
-| IIFE (min) | `senangstart-actions.min.js` | `window.SenangStart` | Production CDN |
-| ESM | `senangstart-actions.esm.js` | N/A | ES imports |
-
-## Public API
-
-```javascript
-SenangStart.data(name, factory)  // Register reusable component
-SenangStart.store(name, data)    // Register global store
-SenangStart.init(root)           // Manually init DOM tree
-SenangStart.start()              // Start framework (auto-called)
-SenangStart.version              // Current version string
-```
+| Format | File Pattern | Description |
+|--------|--------------|-------------|
+| **Full** | `senangstart-actions.{js,min.js}` | Everything included. |
+| **Core** | `senangstart-actions-core.{js,min.js}` | Runtime only (no directives). |
+| **Directive** | `senangstart-actions-[name].{js,min.js}` | Standalone directive (includes core if needed, or reuses global). |
 
 ## File Responsibilities
 
-| File | Responsibility |
-|------|----------------|
-| `index.js` | Public API, auto-start, CSS injection for `ss-cloak` |
-| `reactive.js` | `createReactive()`, `runEffect()`, `scheduleUpdate()`, dependency tracking |
-| `evaluator.js` | `createEvaluator()`, `createExecutor()`, magic properties |
-| `walker.js` | `walk()`, scope creation, attribute processing order |
-| `observer.js` | `setupObserver()`, handles dynamically added elements |
-| `handlers/attributes.js` | Handlers for ss-text, ss-html, ss-show, ss-model, ss-ref, ss-init, ss-effect |
-| `handlers/bind.js` | Handler for ss-bind:[attr] dynamic attributes |
-| `handlers/directives.js` | Handlers for ss-for, ss-if template directives |
-| `handlers/events.js` | Handler for ss-on:[event] with modifiers |
+| File | Structure | Responsibility |
+|------|-----------|----------------|
+| `src/core/senangstart.js` | Core | `SenangStart` global, `start()`, `init()`. |
+| `src/core/registry.js` | Core | Maps attribute names to handler functions. |
+| `src/directives/*.js` | Directive | Implementation of specific behavior (install export). |
+| `src/entries/*.js` | Entry | Configures standalone bundle for a directive. |
+| `src/index.js` | Entry | Imports all directives and exports full bundle. |
+| `src/reactive.js` | Core | Reactivity system (Proxy, Effects). |
+| `src/walker.js` | Core | DOM traversal. |
