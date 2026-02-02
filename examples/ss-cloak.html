@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-cloak - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #059669; }
+        
+        /* The ss-cloak attribute is hidden by this CSS rule.
+           When SenangStart initializes, it removes the attribute, revealing the element. */
+        [ss-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>ss-cloak</h1>
+    <p>Prevents "flash of unstyled content" (FOUC) by hiding elements until initialized.</p>
+
+    <div class="card" ss-data="{ loaded: true }">
+        <p>
+            Without cloak, you might briefly see <code>{{ ... }}</code> or unhydrated state on slow connections.
+        </p>
+
+        <div ss-cloak style="background: #ecfdf5; color: #065f46; padding: 1rem; border-radius: 0.5rem; text-align: center;">
+            <p><strong>I was hidden until SenangStart loaded!</strong></p>
+        </div>
+    </div>
+
+    <!-- 
+      Simulate slow loading by putting script at end or using defer.
+    -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-cloak.min.js"></script>
+</body>
+</html>

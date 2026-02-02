@@ -7,6 +7,84 @@ var SenangStart = (function () {
     'use strict';
 
     /**
+     * SenangStart Actions - Core Registry
+     * Central registry for directives and scopes
+     * 
+     * @module core/registry
+     */
+
+    const registry = {
+        attributes: {},    // Standard directives (ss-text, ss-show, etc.)
+        structurals: {},   // Structural directives (ss-if, ss-for, etc.)
+        scopes: {}};
+
+    /**
+     * Register a standard attribute directive
+     * @param {string} name - Directive name (e.g., 'ss-text')
+     * @param {Function} handler - Handler function
+     */
+    function registerAttribute(name, handler) {
+        registry.attributes[name] = handler;
+    }
+
+    /**
+     * Register a structural directive
+     * @param {string} name - Directive name (e.g., 'ss-if')
+     * @param {Function} handler - Handler function
+     */
+    function registerStructural(name, handler) {
+        registry.structurals[name] = handler;
+    }
+
+    /**
+     * Register a scope directive
+     * @param {string} name - Directive name (e.g., 'ss-data')
+     * @param {Function} handler - Handler function that returns scope data
+     */
+    function registerScope(name, handler) {
+        registry.scopes[name] = handler;
+    }
+
+    /**
+     * Get all registered attribute handlers
+     */
+    function getAttributeHandlers() {
+        return registry.attributes;
+    }
+
+    /**
+     * Get a specific structural handler
+     */
+    function getStructuralHandler(name) {
+        return registry.structurals[name];
+    }
+
+    /**
+     * Get a specific scope handler
+     */
+    function getScopeHandler(name) {
+        return registry.scopes[name];
+    }
+
+    /**
+     * Get all registered scope handlers
+     */
+    function getScopeHandlers() {
+        return registry.scopes;
+    }
+
+    var registry$1 = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        getAttributeHandlers: getAttributeHandlers,
+        getScopeHandler: getScopeHandler,
+        getScopeHandlers: getScopeHandlers,
+        getStructuralHandler: getStructuralHandler,
+        registerAttribute: registerAttribute,
+        registerScope: registerScope,
+        registerStructural: registerStructural
+    });
+
+    /**
      * SenangStart Actions - Reactive System
      * Proxy-based reactivity with dependency tracking
      * 
@@ -171,7 +249,7 @@ var SenangStart = (function () {
     /**
      * Creates a reactive proxy that tracks dependencies and triggers updates
      */
-    function createReactive(data, onUpdate) {
+    function createReactive$1(data, onUpdate) {
         const subscribers = new Map(); // property -> Set of callbacks
         
         let proxy;
@@ -223,65 +301,14 @@ var SenangStart = (function () {
         });
     }
 
-    /**
-     * SenangStart Actions - Core Registry
-     * Central registry for directives and scopes
-     * 
-     * @module core/registry
-     */
-
-    const registry = {
-        attributes: {},    // Standard directives (ss-text, ss-show, etc.)
-        structurals: {},   // Structural directives (ss-if, ss-for, etc.)
-        scopes: {}};
-
-    /**
-     * Register a standard attribute directive
-     * @param {string} name - Directive name (e.g., 'ss-text')
-     * @param {Function} handler - Handler function
-     */
-    function registerAttribute(name, handler) {
-        registry.attributes[name] = handler;
-    }
-
-    /**
-     * Register a structural directive
-     * @param {string} name - Directive name (e.g., 'ss-if')
-     * @param {Function} handler - Handler function
-     */
-    function registerStructural(name, handler) {
-        registry.structurals[name] = handler;
-    }
-
-    /**
-     * Register a scope directive
-     * @param {string} name - Directive name (e.g., 'ss-data')
-     * @param {Function} handler - Handler function that returns scope data
-     */
-    function registerScope(name, handler) {
-        registry.scopes[name] = handler;
-    }
-
-    /**
-     * Get all registered attribute handlers
-     */
-    function getAttributeHandlers() {
-        return registry.attributes;
-    }
-
-    /**
-     * Get a specific structural handler
-     */
-    function getStructuralHandler(name) {
-        return registry.structurals[name];
-    }
-
-    /**
-     * Get all registered scope handlers
-     */
-    function getScopeHandlers() {
-        return registry.scopes;
-    }
+    var reactive = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        createReactive: createReactive$1,
+        get currentEffect () { return currentEffect; },
+        pendingEffects: pendingEffects,
+        runEffect: runEffect,
+        scheduleUpdate: scheduleUpdate
+    });
 
     /**
      * SenangStart Actions - DOM Walker
@@ -299,7 +326,7 @@ var SenangStart = (function () {
     /**
      * Walk the DOM tree and initialize SenangStart attributes
      */
-    function walk(el, parentScope = null) {
+    function walk$1(el, parentScope = null) {
         // Skip non-element nodes
         if (el.nodeType !== 1) return;
         
@@ -336,7 +363,7 @@ var SenangStart = (function () {
 
         // If no scope, can we skip?
         if (!scope) {
-            Array.from(el.children).forEach(child => walk(child, null));
+            Array.from(el.children).forEach(child => walk$1(child, null));
             return;
         }
         
@@ -352,7 +379,7 @@ var SenangStart = (function () {
         for (const attr of attrs) {
             const structuralHandler = getStructuralHandler(attr.name);
             if (structuralHandler) {
-                if (structuralHandler(el, attr.value, scope, walk) === false) {
+                if (structuralHandler(el, attr.value, scope, walk$1) === false) {
                      // specific return value to indicate "stop walking this node" (it was removed/replaced)
                      return;
                 }
@@ -413,16 +440,21 @@ var SenangStart = (function () {
         
         // Note: ss-cloak handling will be a registered attribute handler now
         
-        Array.from(el.children).forEach(child => walk(child, scope));
+        Array.from(el.children).forEach(child => walk$1(child, scope));
     }
 
     // References for external data (passed from index.js)
     let registeredDataFactories$1 = {};
     let stores$1 = {};
 
-    function setReferences(dataFactories, storeRef) {
+    function setReferences$1(dataFactories, storeRef) {
         registeredDataFactories$1 = dataFactories;
         stores$1 = storeRef;
+    }
+
+    // Helpers for scope handlers to access global stores/factories
+    function getStore(name) {
+        return stores$1[name];
     }
 
     function getDataFactory(name) {
@@ -432,6 +464,15 @@ var SenangStart = (function () {
     function getGlobalStores() {
         return stores$1;
     }
+
+    var walker = /*#__PURE__*/Object.freeze({
+        __proto__: null,
+        getDataFactory: getDataFactory,
+        getGlobalStores: getGlobalStores,
+        getStore: getStore,
+        setReferences: setReferences$1,
+        walk: walk$1
+    });
 
     /**
      * SenangStart Actions - MutationObserver
@@ -463,7 +504,7 @@ var SenangStart = (function () {
                             }
                         }
                         
-                        walk(node, parentScope);
+                        walk$1(node, parentScope);
                     }
                 }
             }
@@ -484,6 +525,9 @@ var SenangStart = (function () {
      * @module core/senangstart
      */
 
+
+    const { createReactive } = reactive;
+    const { walk, setReferences } = walker;
 
     // =========================================================================
     // Internal State
@@ -540,6 +584,9 @@ var SenangStart = (function () {
          * Start the framework
          */
         start() {
+            if (this.isStarted) return this;
+            this.isStarted = true;
+
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
                     this.init();
@@ -555,7 +602,16 @@ var SenangStart = (function () {
         /**
          * Version
          */
-        version: '0.1.0'
+        version: '0.1.0',
+
+        /**
+         * Internal APIs exposed for modular directives
+         */
+        internals: {
+            registry: registry$1,
+            reactive,
+            walker
+        }
     };
 
     /**
@@ -960,7 +1016,7 @@ var SenangStart = (function () {
             
             // ss-data creates a new scope
             const newScope = {
-                data: createReactive(initialData, () => {}),
+                data: createReactive$1(initialData, () => {}),
                 $refs: {},
                 $store: getGlobalStores() // Ensure we have access to stores
             };
@@ -1035,7 +1091,7 @@ var SenangStart = (function () {
                     const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
                     
                     const itemScope = {
-                        data: createReactive({ 
+                        data: createReactive$1({ 
                             ...scope.data, 
                             [itemName]: item, 
                             [indexName]: index 

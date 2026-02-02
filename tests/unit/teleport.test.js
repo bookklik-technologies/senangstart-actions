@@ -55,7 +55,7 @@ describe('ss-teleport', () => {
         container.appendChild(template);
         
         const scope = createMockScope({});
-        const consoleSpy = vi.spyOn(console, 'warn');
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
         
         handleTeleport(template, '#non-existent', scope);
         

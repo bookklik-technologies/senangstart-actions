@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-text - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #2563eb; }
+        .badge { background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-family: monospace; }
+        .preview { background: #f0fdf4; padding: 1rem; border-radius: 0.25rem; border: 1px solid #bbf7d0; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-text</h1>
+    <p>Updates the element's text content.</p>
+
+    <div class="card" ss-data="{ message: 'Hello World', user: { name: 'Alice' }, timestamp: new Date().toLocaleTimeString() }">
+        <h2>Basic Usage</h2>
+        <p>Message: <span class="badge" ss-text="message"></span></p>
+        
+        <h2>Expressions</h2>
+        <p>Uppercase: <span class="badge" ss-text="message.toUpperCase()"></span></p>
+        <p>Length: <span class="badge" ss-text="message.length + ' chars'"></span></p>
+        
+        <h2>Nested Objects</h2>
+        <p>User: <strong ss-text="user.name"></strong></p>
+
+        <div style="margin-top: 2rem;">
+            <p><strong>Note:</strong> This example loads:</p>
+            <ul>
+                <li><code>core (shared)</code></li>
+                <li><code>data (state)</code></li>
+                <li><code>text (target)</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+</body>
+</html>

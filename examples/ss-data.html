@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SenangStart Actions - Modular Directives Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #2563eb; }
+        button { background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+        .badge { background: #e0e7ff; color: #3730a3; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+    <h1>Modular Directives Demo</h1>
+    <p>This example demonstrates using individual directive bundles.</p>
+
+    <!-- 
+      Note: In a production environment with CDN, you would use:
+      <script src="https://unpkg.com/@bookklik/senangstart-actions/dist/senangstart-actions-data.min.js"></script>
+    -->
+
+    <div class="card" ss-data="{ count: 0 }">
+        <h2>Counter (ss-data + ss-text + ss-on)</h2>
+        <p>
+            Current count: <strong ss-text="count"></strong>
+        </p>
+        <button ss-on:click="count++">Increment</button>
+    </div>
+
+    <!-- 
+      Loading core and individual modules. 
+      The core bundle exposes the shared 'SenangStart' instance.
+      Directive bundles register themselves to this instance.
+    -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+</body>
+</html>

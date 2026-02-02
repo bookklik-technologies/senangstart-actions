@@ -5,9 +5,13 @@
  * @module core/senangstart
  */
 
-import { createReactive } from '../reactive.js';
-import { walk, setReferences } from '../walker.js';
+import * as registry from './registry.js';
+import * as reactive from '../reactive.js';
+import * as walker from '../walker.js';
 import { setupObserver } from '../observer.js';
+
+const { createReactive } = reactive;
+const { walk, setReferences } = walker;
 
 // =========================================================================
 // Internal State
@@ -64,6 +68,9 @@ const SenangStart = {
      * Start the framework
      */
     start() {
+        if (this.isStarted) return this;
+        this.isStarted = true;
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 this.init();
@@ -79,7 +86,16 @@ const SenangStart = {
     /**
      * Version
      */
-    version: '0.1.0'
+    version: '0.1.0',
+
+    /**
+     * Internal APIs exposed for modular directives
+     */
+    internals: {
+        registry,
+        reactive,
+        walker
+    }
 };
 
 export default SenangStart;

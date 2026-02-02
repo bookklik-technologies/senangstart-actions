@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-if - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #7c3aed; }
+        button { background: #7c3aed; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; margin-bottom: 0.5rem; }
+        button:hover { background: #6d28d9; }
+        .box { background: #f5f3ff; border: 1px solid #ddd6fe; padding: 1rem; margin-top: 0.5rem; border-radius: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-if</h1>
+    <p>Conditionally removes or adds elements to the DOM.</p>
+
+    <div class="card" ss-data="{ active: 'A' }">
+        <div style="margin-bottom: 1rem;">
+            <button ss-on:click="active = 'A'">Show A</button>
+            <button ss-on:click="active = 'B'">Show B</button>
+            <button ss-on:click="active = 'C'">Show C</button>
+        </div>
+
+        <template ss-if="active === 'A'">
+            <div class="box">
+                <h3>Option A Selected</h3>
+                <p>This element physically exists in the DOM only when A is active.</p>
+            </div>
+        </template>
+
+        <template ss-if="active === 'B'">
+            <div class="box">
+                <h3>Option B Selected</h3>
+                <p>Now showing B Content.</p>
+            </div>
+        </template>
+
+        <template ss-if="active === 'C'">
+            <div class="box">
+                <h3>Option C Selected</h3>
+                <p>C Content loaded.</p>
+            </div>
+        </template>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-if.min.js"></script>
+</body>
+</html>

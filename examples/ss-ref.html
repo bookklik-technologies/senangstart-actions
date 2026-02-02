@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-ref - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #be123c; }
+        button { background: #be123c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; margin-right: 0.5rem; }
+        button:hover { background: #9f1239; }
+        canvas { border: 1px solid #ddd; border-radius: 0.25rem; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-ref</h1>
+    <p>Provides direct access to DOM elements via <code>$refs</code>.</p>
+
+    <div class="card" ss-data="{ color: '#be123c' }">
+        <h3>Focus Management</h3>
+        <div style="margin-bottom: 2rem;">
+            <input type="text" ss-ref="myInput" placeholder="I have a ref named 'myInput'" style="padding: 0.5rem; width: 300px;">
+            <div style="margin-top: 0.5rem;">
+                <button ss-on:click="$refs.myInput.focus()">Focus Input</button>
+                <button ss-on:click="$refs.myInput.value = 'Hello World!'">Set Value</button>
+                <button ss-on:click="$refs.myInput.value = ''">Clear</button>
+            </div>
+        </div>
+
+        <h3>Canvas Manipulation</h3>
+        <div>
+            <button ss-on:click="drawRect()">Draw Rectangle</button>
+            <button ss-on:click="clearCanvas()">Clear Canvas</button>
+            <br>
+            <canvas ss-ref="myCanvas" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-ref.min.js"></script>
+    
+    <script>
+        // Extending scope with methods (normally this would be in a factory or just defined inline if simple)
+        // Since we didn't define methods in ss-data, we can't call them directly unless we attach them?
+        // Wait, ss-data expression evaluates to an object. We can't easily add methods there unless we use a factory 
+        // OR we put the logic inline.
+        // For this demo, let's put logic inline or register a data factory.
+        
+        SenangStart.data('DRAW_DEMO', () => ({
+            drawRect() {
+                const ctx = this.$refs.myCanvas.getContext('2d');
+                ctx.fillStyle = '#be123c';
+                ctx.fillRect(Math.random() * 300, Math.random() * 150, 50, 50);
+            },
+            clearCanvas() {
+                const ctx = this.$refs.myCanvas.getContext('2d');
+                ctx.clearRect(0, 0, 400, 200);
+            }
+        }));
+    </script>
+    
+    <!-- Override the card ss-data to use our factory -->
+    <script>
+        // We need to modify the DOM before SenangStart inits? 
+        // Or just let user see inline logic?
+        // Inline logic is hard for canvas. 
+        // Let's use the factory we just registered.
+        document.querySelector('.card').setAttribute('ss-data', 'DRAW_DEMO');
+        
+        // Since we are loading scripts at end of body, we are fine.
+        // But wait, the previous inline ss-data is already in HTML.
+        // Modifying it via script here works because SenangStart.start() runs on DOMContentLoaded 
+        // (or immediately if checking readyState).
+        // Since scripts are at end of body, valid.
+    </script>
+</body>
+</html>

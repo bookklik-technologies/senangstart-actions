@@ -6,6 +6,10 @@ SenangStart Actions adalah rangka kerja JavaScript yang ringan dan deklaratif un
 
 ### CDN (Disyorkan)
 
+#### Berkas Penuh
+
+Cara paling mudah untuk menggunakan SenangStart Actions adalah dengan menyertakan berkas penuh, yang mengandungi rangka kerja Teras dan semua arahan standard.
+
 Tambah tag skrip ke HTML anda:
 
 ```html
@@ -17,6 +21,22 @@ Atau gunakan jsDelivr:
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions"></script>
 ```
+
+#### Berkas Modular (Lanjutan)
+
+Untuk aplikasi pengeluaran di mana saiz berkas adalah kritikal, anda boleh memuatkan hanya rangka kerja Teras dan arahan khusus yang anda perlukan.
+
+```html
+<!-- 1. Muat Teras (Wajib) -->
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-core.min.js"></script>
+
+<!-- 2. Muat Arahan yang anda perlukan -->
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-data.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-text.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-on.min.js"></script>
+```
+
+Setiap arahan tersedia sebagai fail berasingan dalam direktori `dist/`. Berkas Teras menyediakan sistem reaktiviti, manakala berkas individu menambah fungsi khusus (contohnya, `ss-data`, `ss-if`, `ss-for`).
 
 ### npm
 

@@ -54,8 +54,10 @@ describe('createEvaluator', () => {
         const el = document.createElement('div');
         
         // Invalid syntax - missing operand
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         const evaluate = createEvaluator('count +', scope, el);
         expect(evaluate()).toBeUndefined();
+        consoleSpy.mockRestore();
     });
 });
 

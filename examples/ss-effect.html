@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-effect - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #4f46e5; }
+        button { background: #4f46e5; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+        .status { padding: 0.5rem; border-radius: 0.25rem; margin-top: 1rem; text-align: center; font-weight: bold; }
+        .saved { background: #dcfce7; color: #15803d; }
+        .unsaved { background: #fee2e2; color: #b91c1c; }
+    </style>
+</head>
+<body>
+    <h1>ss-effect</h1>
+    <p>Runs a reactive side-effect when dependencies change.</p>
+
+    <div class="card" ss-data="{ count: 0, status: 'Saved' }">
+        <p>Change the count to trigger the effect. The effect logs to console and updates the status.</p>
+        
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+            <button ss-on:click="count--">-</button>
+            <span style="font-size: 1.5rem; font-weight: bold;" ss-text="count"></span>
+            <button ss-on:click="count++">+</button>
+        </div>
+
+        <!-- 
+           ss-effect runs immediately and whenever dependencies (here 'count') change.
+           We use it here to simulate an auto-save or logging mechanism.
+        -->
+        <div ss-effect="
+            console.log('Effect triggered! Count is:', count);
+            status = 'Saving...';
+            setTimeout(() => { status = 'Saved (Count: ' + count + ')' }, 800);
+        "></div>
+
+        <div class="status" 
+             ss-bind:class="status.includes('Saving') ? 'unsaved' : 'saved'"
+             ss-text="status">
+        </div>
+
+        <p style="margin-top: 2rem; font-size: 0.8rem; color: #666;">
+            Open Browser Console to see logs.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-bind.min.js"></script>
+    <script src="../dist/senangstart-actions-effect.min.js"></script>
+</body>
+</html>

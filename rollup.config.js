@@ -38,46 +38,69 @@ const builds = [
     }
 ];
 
+// Core Bundle (Shared Runtime)
+builds.push({
+    input: 'src/core/senangstart.js',
+    output: {
+        file: 'dist/senangstart-actions-core.js',
+        format: 'iife',
+        name: 'SenangStart'
+    }
+});
+
+builds.push({
+    input: 'src/core/senangstart.js',
+    output: {
+        file: 'dist/senangstart-actions-core.min.js',
+        format: 'iife',
+        name: 'SenangStart'
+    },
+    plugins: [terser()]
+});
+
 // Add directive bundles
 directives.forEach(name => {
+    const globals = (id) => {
+        const normalizedId = id.replace(/\\/g, '/');
+        if (normalizedId.includes('core/senangstart.js')) return 'SenangStart';
+        if (normalizedId.includes('core/registry.js')) return 'SenangStart.internals.registry';
+        if (normalizedId.includes('reactive.js')) return 'SenangStart.internals.reactive';
+        if (normalizedId.includes('walker.js')) return 'SenangStart.internals.walker';
+        return id;
+    };
+
+    const external = (id) => {
+        const normalizedId = id.replace(/\\/g, '/');
+        const isExternal = normalizedId.includes('core/senangstart.js') || 
+            normalizedId.includes('core/registry.js') || 
+            normalizedId.includes('reactive.js') || 
+            normalizedId.includes('walker.js');
+        
+        return isExternal;
+    };
+
     builds.push({
         input: `src/entries/${name}.js`,
         output: {
             file: `dist/senangstart-actions-${name}.js`,
             format: 'iife',
             name: 'SenangStart',
-            extend: true // Allow extending the window.SenangStart if it exists? 
-            // Actually, each bundle imports Core and calls start().
-            // If multiple are loaded, they might overwrite or coexist.
-            // Core logic `window.SenangStart = SenangStart` assumes singleton.
-            // If they are truly independent, they define SenangStart with just their directive.
-            // If user loads multiple... e.g. text.js and show.js.
-            // Both define window.SenangStart. The last one wins?
-            // "each only support its specific directives only"
-            // This suggests they are meant to be used EITHER as full bundle OR as specific bundles.
-            // If specific bundles are combined, they need to share the registry.
-            // The registry is in `src/core/registry.js`.
-            // When bundled with IIFE, each bundle gets its OWN internal modules.
-            // So they won't share the registry.
-            // This means they CANNOT be mixed in the same page easily if built as standalone IIFEs.
-            // Unless they expose an API to register more directives?
-            // The core exposes `SenangStart` but not `registerDirective`.
-            // The user requirement "output individual directives indipendently... each only support its specific directives only"
-            // suggests standalone usage.
-            // Supporting "mix and match" would require a shared runtime loader.
-            // Given the task, I will stick to standalone independent builds.
-        }
+            extend: true,
+            globals
+        },
+        external
     });
     
-    // Add minified version for directives too? User implied "output ... like examples".
-    // Usually expected in dist.
     builds.push({
         input: `src/entries/${name}.js`,
         output: {
             file: `dist/senangstart-actions-${name}.min.js`,
             format: 'iife',
-            name: 'SenangStart'
+            name: 'SenangStart',
+            extend: true,
+            globals
         },
+        external,
         plugins: [terser()]
     });
 });

@@ -6,6 +6,10 @@ SenangStart Actions is a lightweight, declarative JavaScript framework for build
 
 ### CDN (Recommended)
 
+#### Full Bundle
+
+The easiest way to use SenangStart Actions is to include the full bundle, which contains the Core framework and all standard directives.
+
 Add the script tag to your HTML:
 
 ```html
@@ -17,6 +21,22 @@ Or use jsDelivr:
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions"></script>
 ```
+
+#### Modular Bundle (Advanced)
+
+For production applications where bundle size is critical, you can load only the Core framework and the specific directives you need.
+
+```html
+<!-- 1. Load Core (Required) -->
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-core.min.js"></script>
+
+<!-- 2. Load Directives you need -->
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-data.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-text.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-on.min.js"></script>
+```
+
+Each directive is available as a separate file in the `dist/` directory. The Core bundle provides the reactivity system, while individual bundles add specific functionality (e.g., `ss-data`, `ss-if`, `ss-for`).
 
 ### npm
 

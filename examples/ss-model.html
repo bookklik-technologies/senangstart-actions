@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-model - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #0891b2; }
+        input, select, textarea { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; width: 100%; display: block; margin-bottom: 0.5rem; }
+        .field { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.25rem; font-weight: 500; font-size: 0.9rem; }
+        .preview { background: #ecfeff; border: 1px solid #a5f3fc; padding: 1rem; border-radius: 0.5rem; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>ss-model</h1>
+    <p>Two-way data binding for form inputs.</p>
+
+    <div class="card" ss-data="{ 
+        name: '', 
+        bio: 'I love coding!', 
+        framework: 'senangstart',
+        newsletter: true 
+    }">
+        <div class="field">
+            <label>Name (Text Input)</label>
+            <input type="text" ss-model="name" placeholder="Enter your name">
+        </div>
+
+        <div class="field">
+            <label>Bio (Textarea)</label>
+            <textarea ss-model="bio" rows="3"></textarea>
+        </div>
+
+        <div class="field">
+            <label>Framework (Select)</label>
+            <select ss-model="framework">
+                <option value="react">React</option>
+                <option value="vue">Vue</option>
+                <option value="senangstart">SenangStart</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                <input type="checkbox" ss-model="newsletter" style="width: auto; margin: 0;">
+                Subscribe to newsletter
+            </label>
+        </div>
+
+        <h3>Live Preview</h3>
+        <div class="preview">
+{
+  "name": "<span ss-text="name"></span>",
+  "bio": "<span ss-text="bio"></span>",
+  "framework": "<span ss-text="framework"></span>",
+  "newsletter": <span ss-text="newsletter"></span>
+}
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-model.min.js"></script>
+    <!-- ss-model implicitly uses event listeners but handles them internally. However, for full robustness usually 'on' is good to have if we use other events. 
+         Wait, ss-model attaches listeners. Does it depend on 'ss-on'? 
+         Looking at source: ss-model just adds event listeners directly via addEventListener. It doesn't use the 'on' directive.
+         So we strictly only need model.
+    -->
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-transition - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #8b5cf6; }
+        button { background: #8b5cf6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+        button:hover { background: #7c3aed; }
+        
+        .box { 
+            background: #ddd6fe; border: 1px solid #8b5cf6; color: #5b21b6; 
+            padding: 2rem; text-align: center; margin-top: 1rem; border-radius: 0.5rem; 
+        }
+
+        /* 
+           CSS Transition Classes (Standard Vue/Alpine style)
+           ss-transition relies on these classes being applied during enter/leave phases.
+           OR you can use inline modifiers like ss-transition.duration.500ms
+        */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.5s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>ss-transition</h1>
+    <p>Applies transition classes or styles when elements are shown or hidden.</p>
+
+    <div class="card" ss-data="{ show: true, type: 'modifier' }">
+        <div style="margin-bottom: 1rem;">
+            <button ss-on:click="show = !show">Toggle</button>
+            <label style="margin-left: 1rem;">
+                <input type="checkbox" ss-on:change="type = $el.checked ? 'class' : 'modifier'" ss-bind:checked="type === 'class'">
+                Use CSS Classes instead of Modifiers
+            </label>
+        </div>
+
+        <!-- 
+            Example 1: Using modifiers (Utility-first style) 
+            Note: ss-transition works in conjunction with ss-show or ss-if
+        -->
+        <template ss-if="type === 'modifier'">
+            <div class="box"
+                 ss-show="show"
+                 ss-transition.duration.500ms.scale.90.opacity.0
+            >
+                Using Modifiers: <code>.duration.500ms.scale.90.opacity.0</code>
+            </div>
+        </template>
+
+        <!-- 
+            Example 2: Using CSS Classes
+            (Requires css definition for enter/leave phases)
+        -->
+        <template ss-if="type === 'class'">
+            <!-- 
+                If no modifiers provided, it uses default class names:
+                .ss-enter-active, .ss-enter-from, etc.
+                OR we can specify a name: ss-transition="fade" -> .fade-enter-active
+            -->
+            <div class="box"
+                 style="background: #bae6fd; border-color: #0ea5e9; color: #0369a1;"
+                 ss-show="show"
+                 ss-transition="fade" 
+            >
+                Using CSS Classes: <code>.fade-enter-active</code>
+            </div>
+        </template>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-bind.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-html.min.js"></script>
+    <script src="../dist/senangstart-actions-show.min.js"></script>
+    <script src="../dist/senangstart-actions-if.min.js"></script>
+    <script src="../dist/senangstart-actions-transition.min.js"></script>
+</body>
+</html>

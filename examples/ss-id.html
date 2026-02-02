@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-id - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #6b7280; }
+        .field { margin-bottom: 1rem; }
+        label { display: block; margin-bottom: 0.25rem; color: #4b5563; font-size: 0.9rem; }
+        input { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; width: 100%; }
+        .hint { font-size: 0.8rem; color: #9ca3af; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-id</h1>
+    <p>Generates unique scoped IDs for accessibility attributes.</p>
+
+    <!-- First Component Instance -->
+    <div class="card" ss-data="{}" ss-id="['email', 'password']">
+        <h3>Login Form (Instance 1)</h3>
+        
+        <div class="field">
+            <!-- Uses $id('email') -->
+            <label ss-bind:for="$id('email')">Email</label>
+            <input type="email" ss-bind:id="$id('email')" placeholder="Enter email">
+            <div class="hint">ID: <span ss-text="$id('email')"></span></div>
+        </div>
+
+        <div class="field">
+             <!-- Uses $id('password') -->
+            <label ss-bind:for="$id('password')">Password</label>
+            <input type="password" ss-bind:id="$id('password')" placeholder="Enter password">
+            <div class="hint">ID: <span ss-text="$id('password')"></span></div>
+        </div>
+    </div>
+
+    <!-- Second Component Instance (Exact same structure, unique actual IDs) -->
+    <div class="card" ss-data="{}" ss-id="['email', 'password']">
+        <h3>Login Form (Instance 2)</h3>
+        
+        <div class="field">
+            <label ss-bind:for="$id('email')">Email</label>
+            <input type="email" ss-bind:id="$id('email')" placeholder="Enter email">
+            <div class="hint">ID: <span ss-text="$id('email')"></span> (Different!)</div>
+        </div>
+
+         <div class="field">
+            <label ss-bind:for="$id('password')">Password</label>
+            <input type="password" ss-bind:id="$id('password')" placeholder="Enter password">
+            <div class="hint">ID: <span ss-text="$id('password')"></span> (Different!)</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-bind.min.js"></script>
+    <script src="../dist/senangstart-actions-id.min.js"></script>
+</body>
+</html>

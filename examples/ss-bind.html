@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-bind - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #db2777; }
+        button { margin-right: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.25rem; border: none; cursor: pointer; }
+        .active { background: #db2777 !important; color: white !important; }
+        .inactive { background: #e5e7eb; color: #374151; }
+        input { padding: 0.5rem; border-radius: 0.25rem; border: 1px solid #ccc; width: 100%; display: block; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-bind</h1>
+    <p>Dynamically bind HTML attributes. (Short syntax <code>:attr="expr"</code> is also supported when providing full build, but here we test explicit <code>ss-bind</code>).</p>
+
+    <div class="card" ss-data="{ isActive: false, placeholderText: 'Type something...', imageUrl: 'https://via.placeholder.com/150' }">
+        
+        <h3>Class Binding</h3>
+        <button 
+            ss-on:click="isActive = !isActive"
+            ss-bind:class="{ 'active': isActive, 'inactive': !isActive }"
+        >
+            Toggle State (Currently: <span ss-text="isActive ? 'Active' : 'Inactive'"></span>)
+        </button>
+
+        <h3>Attribute Binding</h3>
+        <div style="margin-top: 1rem;">
+            <label>Dynamic Placeholder:</label>
+            <input type="text" ss-bind:placeholder="placeholderText">
+            <button ss-on:click="placeholderText = 'Changed placeholder!'" style="margin-top: 0.5rem; background: #2563eb; color: white;">Change Placeholder</button>
+        </div>
+
+        <h3>Style Binding</h3>
+        <div style="margin-top: 1rem;">
+             <div 
+                ss-bind:style="'width: ' + (isActive ? '100%' : '50%') + '; height: 20px; background: #db2777; transition: width 0.3s;'"
+             ></div>
+             <p style="font-size: 0.8rem; color: #666;">Width bound to state.</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-bind.min.js"></script>
+</body>
+</html>

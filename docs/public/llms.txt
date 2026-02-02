@@ -16,6 +16,7 @@
 - [ss-model](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-model): Two-way data binding for inputs
 - [ss-if](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-if): Conditionally render elements
 - [ss-show](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-show): Toggle visibility (display: none)
+- [ss-init](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-init): Run code on initialization
 - [ss-for](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-for): Loop over arrays/objects
 - [ss-bind](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-bind): Bind attributes dynamically
 - [ss-id](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-id): Declare scoped IDs for accessible components
@@ -32,11 +33,32 @@
   - `$nextTick`: Wait for next DOM update
   - `$id`: Generate scoped, unique IDs (requires `ss-id`)
 
-## Quick Start
+## Installation & Usage
+
+### Option 1: Full Bundle (Recommended)
+
+Include the core framework and all standard directives in one file:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions"></script>
+```
 
+### Option 2: Modular Bundle (Optimization)
+
+Load only the core and specific directives needed for smaller bundle size:
+
+```html
+<!-- Core is required -->
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-core.min.js"></script>
+
+<!-- Add only what you use -->
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-data.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@bookklik/senangstart-actions/dist/senangstart-actions-text.min.js"></script>
+```
+
+## Quick Example
+
+```html
 <div ss-data="{ count: 0 }">
     <button ss-on:click="count--">-</button>
     <span ss-text="count"></span>

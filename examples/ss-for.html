@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-for - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #ea580c; }
+        button { background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+        button:hover { background: #c2410c; }
+        .list-item { padding: 0.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .list-item:last-child { border-bottom: none; }
+        input { padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-for</h1>
+    <p>Renders a list of items based on an array.</p>
+
+    <div class="card" ss-data="{ items: ['Apple', 'Banana', 'Cherry'], newItem: '' }">
+        <h2>Shopping List</h2>
+        
+        <div style="margin-bottom: 1rem; display: flex;">
+            <!-- Note: We use ss-model here but we need to load it! -->
+            <input type="text" ss-model="newItem" placeholder="Add item..." ss-on:keyup.enter="if(newItem) { items.push(newItem); newItem = '' }">
+            <button ss-on:click="if(newItem) { items.push(newItem); newItem = '' }">Add</button>
+        </div>
+
+        <div style="border: 1px solid #e5e7eb; border-radius: 0.5rem;">
+            <template ss-for="(item, i) in items">
+                <div class="list-item">
+                    <span>
+                        <span style="color: #9ca3af; margin-right: 0.5rem;" ss-text="i + 1"></span>
+                        <span ss-text="item"></span>
+                    </span>
+                    <button ss-on:click="items.splice(i, 1)" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: #ef4444;">Remove</button>
+                </div>
+            </template>
+        </div>
+        
+        <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+            Total items: <strong ss-text="items.length"></strong>
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-model.min.js"></script>
+    <script src="../dist/senangstart-actions-for.min.js"></script>
+</body>
+</html>

@@ -12,6 +12,7 @@ SenangStart Actions menggunakan atribut HTML dengan awalan `ss-` untuk menambah 
 | [ss-show](/ms/directives/ss-show) | Togol keterlihatan |
 | [ss-if](/ms/directives/ss-if) | Rendering bersyarat |
 | [ss-for](/ms/directives/ss-for) | Rendering senarai |
+| [ss-html](/ms/directives/ss-html) | Mengikat kandungan HTML |
 
 ## Borang & Pengikatan
 
@@ -29,6 +30,7 @@ SenangStart Actions menggunakan atribut HTML dengan awalan `ss-` untuk menambah 
 | [ss-effect](/ms/directives/ss-effect) | Kesan sampingan |
 | [ss-transition](/ms/directives/ss-transition) | Transisi CSS |
 | [ss-teleport](/ms/directives/ss-teleport) | Teleport kandungan |
+| [ss-init](/ms/directives/ss-init) | Jalankan kod semasa inisialisasi |
 | [ss-cloak](/ms/directives/ss-cloak) | Sembunyikan sehingga sedia |
 
 ## Contoh Pantas

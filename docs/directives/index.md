@@ -12,6 +12,7 @@ SenangStart Actions uses HTML attributes prefixed with `ss-` to add reactive beh
 | [ss-show](/directives/ss-show) | Toggle visibility |
 | [ss-if](/directives/ss-if) | Conditional rendering |
 | [ss-for](/directives/ss-for) | List rendering |
+| [ss-html](/directives/ss-html) | Render HTML content |
 
 ## Form & Binding
 
@@ -29,6 +30,7 @@ SenangStart Actions uses HTML attributes prefixed with `ss-` to add reactive beh
 | [ss-effect](/directives/ss-effect) | Side effects |
 | [ss-transition](/directives/ss-transition) | CSS transitions |
 | [ss-teleport](/directives/ss-teleport) | Teleport content |
+| [ss-init](/directives/ss-init) | Run on initialization |
 | [ss-cloak](/directives/ss-cloak) | Hide until ready |
 
 ## Quick Examples

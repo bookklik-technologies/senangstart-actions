@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-show - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #f59e0b; }
+        button { background: #f59e0b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+        button:hover { background: #d97706; }
+        .box { background: #fffbeb; border: 1px solid #fcd34d; padding: 2rem; text-align: center; margin-top: 1rem; border-radius: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-show</h1>
+    <p>Toggles <code>display: none</code> on the element based on the expression.</p>
+
+    <div class="card" ss-data="{ visible: true }">
+        <button ss-on:click="visible = !visible">
+            Toggle Box
+        </button>
+
+        <div class="box" ss-show="visible">
+            I am visible!
+        </div>
+
+        <p style="margin-top: 1rem; color: #666;">
+            Note: Inspech DOM to see <code>style="display: none;"</code> when hidden. The element is NOT removed from DOM.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+    <script src="../dist/senangstart-actions-show.min.js"></script>
+</body>
+</html>

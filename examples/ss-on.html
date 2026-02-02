@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-on - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #dc2626; }
+        button { background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; margin-right: 0.5rem; }
+        button:hover { background: #b91c1c; }
+        .log { background: #111; color: #bef264; padding: 1rem; border-radius: 0.25rem; font-family: monospace; height: 150px; overflow-y: auto; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <h1>ss-on</h1>
+    <p>Attaches event listeners to elements.</p>
+
+    <div class="card" ss-data="{ logs: [] }">
+        <div style="margin-bottom: 1rem;">
+            <button ss-on:click="logs.unshift('Clicked at ' + new Date().toLocaleTimeString())">
+                Click Me
+            </button>
+            
+            <button ss-on:mouseover="logs.unshift('Hovered at ' + new Date().toLocaleTimeString())">
+                Hover Me
+            </button>
+        </div>
+
+        <h3>Event Modifiers</h3>
+        <div style="margin-bottom: 1rem;">
+            <form ss-on:submit.prevent="logs.unshift('Form submitted (page did not reload!)')">
+                <input type="text" placeholder="Press Enter..." style="padding: 0.5rem;">
+                <button type="submit">Submit (Prevent Default)</button>
+            </form>
+        </div>
+
+        <h3>Key Modifiers</h3>
+        <div style="margin-bottom: 1rem;">
+            <input type="text" placeholder="Press Escape..." 
+                   ss-on:keyup.escape="logs.unshift('Escape pressed!')"
+                   style="padding: 0.5rem; width: 100%;">
+        </div>
+
+        <div class="log">
+            <template ss-for="log in logs">
+                <div ss-text="'> ' + log"></div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-for.min.js"></script>
+    <script src="../dist/senangstart-actions-on.min.js"></script>
+</body>
+</html>

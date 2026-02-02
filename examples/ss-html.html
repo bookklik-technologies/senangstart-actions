@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-html - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #db2777; }
+        .warning { background: #fef2f2; color: #991b1b; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem; font-size: 0.9rem; border-left: 4px solid #ef4444; }
+        .content-box { border: 1px dashed #cbd5e1; padding: 1rem; margin-top: 0.5rem; }
+        b { color: #db2777; }
+    </style>
+</head>
+<body>
+    <h1>ss-html</h1>
+    <p>Updates the element's innerHTML.</p>
+
+    <div class="card" ss-data="{ 
+        rawHtml: 'This is <b>bold</b> and <i>italic</i> text.', 
+        evilLink: '<a href=\'#\' onclick=\'alert(1)\'>Click for Alert (XSS Risk)</a>' 
+    }">
+        <div class="warning">
+            <strong>Security Warning:</strong> Only use <code>ss-html</code> on trusted content. It creates an XSS vulnerability if used with user input!
+        </div>
+
+        <h2>Safe Content</h2>
+        <div>
+            Source: <code ss-text="rawHtml"></code>
+        </div>
+        <div class="content-box" ss-html="rawHtml"></div>
+
+        <h2 style="margin-top: 2rem;">Unsafe Content (Demonstration)</h2>
+        <div>
+            Source: <code ss-text="evilLink"></code>
+        </div>
+        <div class="content-box" ss-html="evilLink"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-html.min.js"></script>
+</body>
+</html>

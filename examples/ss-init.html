@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ss-init - Modular Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
+        .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
+        h1 { color: #374151; }
+    </style>
+</head>
+<body>
+    <h1>ss-init</h1>
+    <p>Runs initialization logic when the element is processed.</p>
+
+    <!-- 
+        ss-init is useful for setting up state without needing a separate <script> 
+        or when using ss-data with simple inline logic.
+    -->
+    <div class="card" 
+         ss-data="{ count: 0, initialized: false }" 
+         ss-init="console.log('Component Mounted!'); count = 100; initialized = true;"
+    >
+        <h3>Component State</h3>
+        <p>
+            Initialized: <strong ss-text="initialized"></strong>
+        </p>
+        <p>
+            Count: <strong ss-text="count"></strong> (Should start at 100 due to init)
+        </p>
+        
+        <p style="color: #666; font-size: 0.9rem;">
+            Check console for "Component Mounted!" message.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../dist/senangstart-actions-core.min.js"></script>
+    <script src="../dist/senangstart-actions-data.min.js"></script>
+    <script src="../dist/senangstart-actions-text.min.js"></script>
+    <script src="../dist/senangstart-actions-init.min.js"></script>
+</body>
+</html>
