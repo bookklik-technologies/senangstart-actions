@@ -86,6 +86,110 @@ Trigger hanya jika sasaran peristiwa adalah elemen itu sendiri:
 </div>
 ```
 
+### .once
+
+Trigger hanya sekali. Pendengar dibuang daripada sasaran sebenar (elemen, window, atau document):
+
+```html
+<button ss-on:click.once="initializeApp()">
+  Initialize (hanya berfungsi sekali)
+</button>
+```
+
+### .outside / .away
+
+Trigger hanya apabila peristiwa berlaku di luar elemen (pendengar dilampirkan pada `document`):
+
+```html
+<div ss-on:click.outside="closeModal()" class="modal">
+  Klik di luar akan tutup modal
+</div>
+```
+
+### .window dan .document
+
+Lampirkan pendengar pada `window` atau `document`:
+
+```html
+<div ss-on:keydown.window.slash="openSearch()">
+<div ss-on:resize.window="recalculate()">
+```
+
+### .capture dan .passive
+
+Hantar pilihan pendengar kepada `addEventListener`:
+
+```html
+<!-- Pendengar fasa capture -->
+<div ss-on:click.capture="handleCapture()">
+
+<!-- Pendengar pasif -->
+<div ss-on:scroll.passive="onScroll()">
+
+<!-- Secara jelas tidak pasif -->
+<div ss-on:touchstart.passive.false="onTouch()">
+```
+
+### .debounce dan .throttle
+
+Debounce atau throttle pengendali. Lalai ialah `250ms`:
+
+```html
+<input ss-on:input.debounce="search(query)">
+<input ss-on:input.debounce.500ms="search(query)">
+<div ss-on:scroll.throttle="onScroll()">
+<div ss-on:scroll.throttle.750ms="onScroll()">
+```
+
+### .camel dan .dot
+
+Tukar nama peristiwa (berguna untuk peristiwa tersuai):
+
+```html
+<!-- Dengar "customEvent" -->
+<div ss-on:custom-event.camel="handler()">
+
+<!-- Dengar "custom.event" -->
+<div ss-on:custom-event.dot="handler()">
+```
+
+## Modifier Sistem
+
+Macro untuk `KeyboardEvent.key` dan peristiwa tetikus:
+
+- `.ctrl`, `.shift`, `.alt`, `.meta` — kekunci sistem
+- `.cmd`, `.super` — alias untuk `.meta`
+- `.esc` — Escape
+- `.space` / `.spacebar` — Space
+- `.slash` — `/`
+- `.period` — `.`
+- `.comma` — `,`
+- `.equal` — `=`
+- `.minus` — `-`
+- `.underscore` — `_`
+- `.up`, `.down`, `.left`, `.right` — Kekunci anak panah
+
+Mana-mana nama kekunci, tulis dalam kebab-case (contoh `.arrow-up`, `.page-down`), boleh digunakan sebagai modifier.
+
+## Rujukan Modifier
+
+| Modifier | Tingkah Laku |
+|---|---|
+| `.prevent` | Memanggil `event.preventDefault()` |
+| `.stop` | Memanggil `event.stopPropagation()` |
+| `.self` | Hanya trigger apabila `event.target` ialah elemen itu sendiri |
+| `.once` | Buang pendengar selepas pelaksanaan pertama |
+| `.outside` / `.away` | Trigger hanya bila peristiwa berpunca di luar elemen (dilampirkan pada `document`) |
+| `.window` | Lampirkan pendengar pada `window` |
+| `.document` | Lampirkan pendengar pada `document` |
+| `.capture` | Guna fasa capture (`{ capture: true }`) |
+| `.passive` | Guna `{ passive: true }` (atau `false` dengan `.passive.false`) |
+| `.debounce` / `.debounce.250ms` | Debounce pengendali (lalai `250ms`) |
+| `.throttle` / `.throttle.250ms` | Throttle pengendali (lalai `250ms`) |
+| `.camel` | Tukar `custom-event` kepada `customEvent` |
+| `.dot` | Tukar `custom-event` kepada `custom.event` |
+| Nama kekunci / alias | Tapis peristiwa papan kekunci mengikut kekunci |
+
 ## Mengakses Objek Event
 
 Gunakan `$event` untuk mengakses peristiwa natif:
@@ -93,6 +197,16 @@ Gunakan `$event` untuk mengakses peristiwa natif:
 ```html
 <div ss-data="{}">
   <input ss-on:input="console.log($event.target.value)">
+</div>
+```
+
+## Rujukan Kaedah Kosong (Bare Method)
+
+Jika ungkapan hanya nama kaedah, ia dipanggil dengan peristiwa sebagai hujahnya:
+
+```html
+<div ss-data="{ handleClick(e) { console.log(e.type) } }">
+  <button ss-on:click="handleClick">Klik</button>
 </div>
 ```
 

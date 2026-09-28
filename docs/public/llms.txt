@@ -12,7 +12,7 @@
 - [ss-data](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-data): Define component state within a scope
 - [ss-text](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-text): Update text content reactively
 - [ss-html](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-html): Update inner HTML reactively
-- [ss-on](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-on): Listen for events (e.g., `ss-on:click`)
+- [ss-on](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-on): Listen for events (e.g., `ss-on:click`) with full modifier support: `.prevent`, `.stop`, `.self`, `.once`, `.outside`/`.away`, `.window`, `.document`, `.capture`, `.passive`, `.debounce`, `.throttle`, `.camel`, `.dot`, key aliases and system modifiers (`.ctrl`, `.meta`, etc.)
 - [ss-model](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-model): Two-way data binding for inputs
 - [ss-if](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-if): Conditionally render elements
 - [ss-show](https://bookklik-technologies.github.io/senangstart-actions/directives/ss-show): Toggle visibility (display: none)

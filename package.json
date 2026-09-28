@@ -1,6 +1,6 @@
 {
   "name": "@bookklik/senangstart-actions",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Declarative UI framework for humans and AI agents",
   "main": "dist/senangstart-actions.js",
   "module": "dist/senangstart-actions.esm.js",
@@ -36,11 +36,11 @@
     "url": "https://github.com/bookklik-technologies/senangstart-actions"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
-    "@vitest/coverage-v8": "^2.1.0",
+    "@rollup/plugin-terser": "^1.0.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "jsdom": "^25.0.0",
     "rollup": "^4.9.0",
     "vitepress": "^1.5.0",
-    "vitest": "^2.1.0"
+    "vitest": "^4.1.11"
   }
 }

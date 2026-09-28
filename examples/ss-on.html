@@ -8,39 +8,71 @@
         body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; background: #f4f4f5; color: #18181b; }
         .card { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1rem; }
         h1 { color: #dc2626; }
+        h3 { margin: 1.5rem 0 0.5rem; }
         button { background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; margin-right: 0.5rem; }
         button:hover { background: #b91c1c; }
-        .log { background: #111; color: #bef264; padding: 1rem; border-radius: 0.25rem; font-family: monospace; height: 150px; overflow-y: auto; margin-top: 1rem; }
+        input { padding: 0.5rem; border: 1px solid #d4d4d8; border-radius: 0.25rem; margin: 0.25rem 0; width: 100%; }
+        .box { display: inline-block; padding: 0.75rem; border-radius: 0.25rem; margin-top: 0.5rem; }
+        .log { background: #111; color: #bef264; padding: 1rem; border-radius: 0.25rem; font-family: monospace; height: 200px; overflow-y: auto; margin-top: 1rem; }
     </style>
 </head>
 <body>
     <h1>ss-on</h1>
-    <p>Attaches event listeners to elements.</p>
+    <p>Attaches event listeners to elements, with full modifier support.</p>
 
-    <div class="card" ss-data="{ logs: [] }">
+    <div class="card" ss-data="{
+        logs: [],
+        open: false,
+        search: '',
+        log(msg) { this.logs.unshift(new Date().toLocaleTimeString() + ' — ' + msg) },
+        logEvent(e) { this.log('Bare method ref received: ' + e.type) }
+    }">
+        <h3>Basic Events & @ Shorthand</h3>
         <div style="margin-bottom: 1rem;">
-            <button ss-on:click="logs.unshift('Clicked at ' + new Date().toLocaleTimeString())">
-                Click Me
-            </button>
-            
-            <button ss-on:mouseover="logs.unshift('Hovered at ' + new Date().toLocaleTimeString())">
-                Hover Me
-            </button>
+            <button ss-on:click="log('Clicked')">Click Me</button>
+            <button ss-on:mouseover="log('Hovered')">Hover Me</button>
+            <button ss-on:click="logEvent">Bare Method Ref (passes $event)</button>
         </div>
 
         <h3>Event Modifiers</h3>
         <div style="margin-bottom: 1rem;">
-            <form ss-on:submit.prevent="logs.unshift('Form submitted (page did not reload!)')">
-                <input type="text" placeholder="Press Enter..." style="padding: 0.5rem;">
-                <button type="submit">Submit (Prevent Default)</button>
+            <form ss-on:submit.prevent="log('Form submitted (page did not reload!)')">
+                <input type="text" placeholder="Press Enter to submit (.prevent)..." style="margin-bottom: 0.5rem;">
+                <button type="submit">Submit (.prevent)</button>
+                <button type="button" ss-on:click.once="log('Initialized (.once only fires once)')">.once</button>
+                <span class="box" ss-on:click.self="log('Outer .self clicked')" style="background: #fef2f2;">
+                    .self (click the red padding, not this inner text)
+                </span>
             </form>
         </div>
 
-        <h3>Key Modifiers</h3>
+        <h3>.outside</h3>
         <div style="margin-bottom: 1rem;">
-            <input type="text" placeholder="Press Escape..." 
-                   ss-on:keyup.escape="logs.unshift('Escape pressed!')"
-                   style="padding: 0.5rem; width: 100%;">
+            <button ss-on:click.stop="open = true" ss-show="!open">Open dropdown</button>
+            <div class="box" ss-show="open" ss-on:click.outside="open = false; log('Closed via .outside')"
+                 style="background: #fef9c3;">
+                Dropdown
+                <button ss-on:click="open = false">Close</button>
+                <span style="font-size: 0.85rem;">(or click anywhere outside this box — .outside closes it)</span>
+            </div>
+        </div>
+
+        <h3>Key & System Modifiers</h3>
+        <div style="margin-bottom: 1rem;">
+            <input type="text" placeholder="Press Escape..." ss-on:keyup.escape="log('Escape pressed!')">
+            <input type="text" placeholder="Press '/' — shortcut fires, '/' is not typed (.prevent)"
+                   ss-on:keydown.slash.prevent="log('Slash shortcut triggered!')">
+            <input type="text" placeholder="Press Ctrl+Enter..." ss-on:keydown.ctrl.enter="log('Ctrl+Enter pressed!')">
+        </div>
+
+        <h3>.debounce & .throttle</h3>
+        <div style="margin-bottom: 1rem;">
+            <input type="text" ss-model="search"
+                   ss-on:input.debounce.500ms="log('Debounced search: ' + search)"
+                   placeholder="Type, then stop for 500ms (.debounce.500ms)">
+            <p style="font-size: 0.85rem; color: #71717a;">
+                Resize the browser window — the resize listener is attached to <code>.window</code> and throttled to once per 500ms.
+            </p>
         </div>
 
         <div class="log">
@@ -55,6 +87,8 @@
     <script src="../dist/senangstart-actions-data.min.js"></script>
     <script src="../dist/senangstart-actions-text.min.js"></script>
     <script src="../dist/senangstart-actions-for.min.js"></script>
+    <script src="../dist/senangstart-actions-show.min.js"></script>
+    <script src="../dist/senangstart-actions-model.min.js"></script>
     <script src="../dist/senangstart-actions-on.min.js"></script>
 </body>
 </html>

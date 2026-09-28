@@ -64,7 +64,7 @@ Anda boleh menyesuaikan fasa *Masuk* dan *Keluar* secara berasingan menggunakan 
 
 ## Transisi Berasaskan Kelas
 
-Jika anda lebih suka menggunakan kelas CSS (serasi dengan konvensyen Vue/Alpine), `ss-transition` tanpa pengubahsuai (atau bersamanya) menggunakan kelas berikut sepanjang kitaran hayat:
+Jika anda lebih suka menggunakan kelas CSS (serasi dengan konvensyen Vue), `ss-transition` tanpa pengubahsuai (atau bersamanya) menggunakan kelas berikut sepanjang kitaran hayat:
 
 | Kelas | Digunakan Apabila | Penerangan |
 | :--- | :--- | :--- |

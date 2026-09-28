@@ -70,7 +70,7 @@ export function walk(el, parentScope = null) {
         // We check for specific structural directives. 
         // We can iterate registered structural directives?
         // But what if multiple are present? 
-        // Vue/Alpine usually have precedence. 
+        // Vue usually has precedence. 
         // Let's iterate but prioritize? Or just one allowed?
         // For now, just finding the first matching one is probably safe enough for this refactor.
         

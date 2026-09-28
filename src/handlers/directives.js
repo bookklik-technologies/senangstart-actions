@@ -132,7 +132,7 @@ export function handleTeleport(templateEl, expr, scope) {
     templateEl.remove();
     
     // If target doesn't exist yet, we could use MutationObserver on body to wait for it.
-    // For now, mirroring Alpine's behavior: if it doesn't exist, it warns and does nothing? 
+    // For now, mirroring that expected behavior: if it doesn't exist, it warns and does nothing? 
     // Or maybe we should retry. Let's start with immediate check.
     if (!target) {
         console.warn(`[SenangStart] ss-teleport target not found: ${targetSelector}`);

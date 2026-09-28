@@ -64,7 +64,7 @@ You can customize *Enter* and *Leave* phases separately using `ss-transition:ent
 
 ## Class-Based Transitions
 
-If you prefer using CSS classes (compatible with Vue/Alpine class conventions), `ss-transition` without modifiers (or alongside them) applies the following classes during the lifecycle:
+If you prefer using CSS classes (compatible with Vue class conventions), `ss-transition` without modifiers (or alongside them) applies the following classes during the lifecycle:
 
 | Class | Applied When | Description |
 | :--- | :--- | :--- |
