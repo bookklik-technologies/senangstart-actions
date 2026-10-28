@@ -1,4 +1,7 @@
 import terser from '@rollup/plugin-terser';
+import { readFileSync } from 'node:fs';
+
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
 const directives = [
     'data', 'text', 'show', 'if', 'for', 'model', 'bind', 'on', 
@@ -14,7 +17,7 @@ const builds = [
             file: 'dist/senangstart-actions.js',
             format: 'iife',
             name: 'SenangStart',
-            banner: '/**\n * SenangStart Actions v0.1.0\n * Declarative UI framework for humans and AI agents\n * @license MIT\n */'
+            banner: `/**\n * SenangStart Actions v${version}\n * Declarative UI framework for humans and AI agents\n * @license MIT\n */`
         }
     },
     // Main Minified browser bundle
@@ -33,7 +36,7 @@ const builds = [
         output: {
             file: 'dist/senangstart-actions.esm.js',
             format: 'es',
-            banner: '/**\n * SenangStart Actions v0.1.0\n * Declarative UI framework for humans and AI agents\n * @license MIT\n */'
+            banner: `/**\n * SenangStart Actions v${version}\n * Declarative UI framework for humans and AI agents\n * @license MIT\n */`
         }
     }
 ];

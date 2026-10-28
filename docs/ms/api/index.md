@@ -38,5 +38,5 @@ SenangStart.start()
 Akses versi semasa:
 
 ```javascript
-console.log(SenangStart.version) // "0.1.0"
+console.log(SenangStart.version) // "0.1.7"
 ```

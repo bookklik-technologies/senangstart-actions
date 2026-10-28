@@ -1,216 +1,159 @@
-/**
- * SenangStart Actions - Reactive System
- * Proxy-based reactivity with dependency tracking
- * 
- * @module reactive
- */
-
-// Array methods that mutate the array
-const ARRAY_MUTATING_METHODS = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin'];
-
-// Internal state
+const iterationKey = Symbol('iteration');
+const proxyMetadata = new WeakMap();
+const effectDependencies = new WeakMap();
+const ownedEffects = new WeakMap();
+const stoppedEffects = new WeakSet();
+const pendingCallbacks = new Set();
 let pendingUpdate = false;
+
 export const pendingEffects = new Set();
 export let currentEffect = null;
 
-/**
- * Creates a reactive array that triggers updates on mutations
- */
-function createReactiveArray(arr, onMutate, subscribers) {
-    const handler = {
-        get(target, prop) {
-            // Track dependency for length and numeric indices
-            if (currentEffect && (prop === 'length' || !isNaN(parseInt(prop)))) {
-                if (!subscribers.has('__array__')) {
-                    subscribers.set('__array__', new Set());
+function track(subscribers, property) {
+    if (!currentEffect) return;
+    if (!subscribers.has(property)) subscribers.set(property, new Set());
+    const dependencies = subscribers.get(property);
+    dependencies.add(currentEffect);
+    effectDependencies.get(currentEffect)?.add(dependencies);
+}
+
+export function createReactive(data, onUpdate) {
+    if (!data || typeof data !== 'object') {
+        throw new TypeError('[SenangStart] Reactive data must be an object or array');
+    }
+    const cache = new WeakMap();
+
+    const wrap = (target) => {
+        if (!target || typeof target !== 'object') return target;
+        if (proxyMetadata.has(target)) return target;
+        const prototype = Object.getPrototypeOf(target);
+        if (!Array.isArray(target) && prototype !== Object.prototype && prototype !== null) return target;
+        if (cache.has(target)) return cache.get(target);
+
+        const subscribers = new Map();
+        const boundMethods = new Map();
+        const notify = (properties) => {
+            properties.forEach(property => {
+                subscribers.get(property)?.forEach(effect => pendingEffects.add(effect));
+            });
+            scheduleUpdate(onUpdate);
+        };
+
+        const proxy = new Proxy(target, {
+            get(object, property, receiver) {
+                if (property === '__isReactive') return true;
+                if (property === '__subscribers') return subscribers;
+                track(subscribers, property);
+                const value = Reflect.get(object, property, receiver);
+                const descriptor = Reflect.getOwnPropertyDescriptor(object, property);
+                if (descriptor && !descriptor.configurable && descriptor.writable === false) return value;
+                if (typeof value === 'function' && !Array.isArray(object)) {
+                    if (!boundMethods.has(value)) boundMethods.set(value, value.bind(receiver));
+                    return boundMethods.get(value);
                 }
-                subscribers.get('__array__').add(currentEffect);
-            }
-            
-            const value = target[prop];
-            
-            // Intercept mutating array methods
-            if (ARRAY_MUTATING_METHODS.includes(prop) && typeof value === 'function') {
-                return function(...args) {
-                    const result = Array.prototype[prop].apply(target, args);
-                    
-                    // Notify all array subscribers
-                    if (subscribers.has('__array__')) {
-                        subscribers.get('__array__').forEach(callback => {
-                            pendingEffects.add(callback);
+                return wrap(value);
+            },
+            has(object, property) {
+                track(subscribers, property);
+                return Reflect.has(object, property);
+            },
+            ownKeys(object) {
+                track(subscribers, iterationKey);
+                return Reflect.ownKeys(object);
+            },
+            set(object, property, value, receiver) {
+                const hadProperty = Object.hasOwn(object, property);
+                const oldValue = object[property];
+                const oldLength = Array.isArray(object) ? object.length : 0;
+                const rawValue = proxyMetadata.get(value)?.target ?? value;
+                if (!Reflect.set(object, property, rawValue, receiver)) return false;
+                if (hadProperty && Object.is(oldValue, rawValue)) return true;
+
+                const properties = new Set([property]);
+                if (!hadProperty) properties.add(iterationKey);
+                if (Array.isArray(object)) {
+                    if (object.length !== oldLength) properties.add('length');
+                    if (property === 'length' && object.length < oldLength) {
+                        properties.add(iterationKey);
+                        subscribers.forEach((effects, key) => {
+                            if (typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key) && Number(key) >= object.length) {
+                                properties.add(key);
+                            }
                         });
                     }
-                    
-                    scheduleUpdate(onMutate);
-                    return result;
-                };
-            }
-            
-            // Recursively wrap nested objects/arrays
-            if (value && typeof value === 'object') {
-                if (Array.isArray(value)) {
-                    return createReactiveArray(value, onMutate, subscribers);
-                } else {
-                    return createReactiveObject(value, onMutate, subscribers);
                 }
+                notify(properties);
+                return true;
+            },
+            deleteProperty(object, property) {
+                const hadProperty = Object.hasOwn(object, property);
+                if (!Reflect.deleteProperty(object, property)) return false;
+                if (hadProperty) notify(new Set([property, iterationKey]));
+                return true;
             }
-            
-            return value;
-        },
-        
-        set(target, prop, value) {
-            const oldValue = target[prop];
-            if (oldValue === value) return true;
-            
-            target[prop] = value;
-            
-            // Notify subscribers
-            if (subscribers.has('__array__')) {
-                subscribers.get('__array__').forEach(callback => {
-                    pendingEffects.add(callback);
-                });
-            }
-            
-            scheduleUpdate(onMutate);
-            return true;
-        }
+        });
+
+        cache.set(target, proxy);
+        proxyMetadata.set(proxy, { target });
+        return proxy;
     };
-    
-    return new Proxy(arr, handler);
+
+    return wrap(data);
 }
 
-/**
- * Creates a reactive object that triggers updates on property changes
- */
-function createReactiveObject(obj, onMutate, subscribers) {
-    const handler = {
-        get(target, prop) {
-            // Skip internal properties
-            if (prop === '__subscribers' || prop === '__isReactive') {
-                return target[prop];
-            }
-            
-            // Track dependency if we're in an effect context
-            if (currentEffect) {
-                if (!subscribers.has(prop)) {
-                    subscribers.set(prop, new Set());
-                }
-                subscribers.get(prop).add(currentEffect);
-            }
-            
-            const value = target[prop];
-            
-            // If it's a function, bind it to the proxy
-            if (typeof value === 'function') {
-                return value.bind(proxy);
-            }
-            
-            // Recursively wrap nested objects/arrays
-            if (value && typeof value === 'object') {
-                if (Array.isArray(value)) {
-                    return createReactiveArray(value, onMutate, subscribers);
-                } else if (!value.__isReactive) {
-                    return createReactiveObject(value, onMutate, subscribers);
-                }
-            }
-            
-            return value;
-        },
-        
-        set(target, prop, value) {
-            const oldValue = target[prop];
-            if (oldValue === value) return true;
-            
-            target[prop] = value;
-            
-            // Notify subscribers for this property
-            if (subscribers.has(prop)) {
-                subscribers.get(prop).forEach(callback => {
-                    pendingEffects.add(callback);
-                });
-            }
-            
-            // Schedule batched update
-            scheduleUpdate(onMutate);
-            
-            return true;
-        },
-        
-        deleteProperty(target, prop) {
-            delete target[prop];
-            
-            if (subscribers.has(prop)) {
-                subscribers.get(prop).forEach(callback => {
-                    pendingEffects.add(callback);
-                });
-            }
-            
-            scheduleUpdate(onMutate);
-            return true;
-        },
-
-        ownKeys(target) {
-            return Reflect.ownKeys(target).filter(key => 
-                key !== '__subscribers' && key !== '__isReactive'
-            );
-        }
-    };
-    
-    const proxy = new Proxy(obj, handler);
-    return proxy;
+export function cleanupTree(node) {
+    ownedEffects.get(node)?.forEach(effect => {
+        stoppedEffects.add(effect);
+        pendingEffects.delete(effect);
+        effectDependencies.get(effect)?.forEach(dependencies => dependencies.delete(effect));
+        effectDependencies.delete(effect);
+    });
+    ownedEffects.delete(node);
+    node.__ssOnCleanup?.splice(0).forEach(cleanup => cleanup());
+    Array.from(node.childNodes || []).forEach(cleanupTree);
+    delete node.__ssInitialized;
 }
 
-/**
- * Creates a reactive proxy that tracks dependencies and triggers updates
- */
-export function createReactive(data, onUpdate) {
-    const subscribers = new Map(); // property -> Set of callbacks
-    
-    let proxy;
-    if (Array.isArray(data)) {
-        proxy = createReactiveArray(data, onUpdate, subscribers);
-    } else {
-        proxy = createReactiveObject(data, onUpdate, subscribers);
+export function runEffect(fn, owner) {
+    if (stoppedEffects.has(fn)) return;
+    if (owner) {
+        if (!ownedEffects.has(owner)) ownedEffects.set(owner, new Set());
+        ownedEffects.get(owner).add(fn);
     }
-    
-    proxy.__subscribers = subscribers;
-    proxy.__isReactive = true;
-    return proxy;
-}
-
-/**
- * Run an effect function while tracking its dependencies
- */
-export function runEffect(fn) {
+    effectDependencies.get(fn)?.forEach(dependencies => dependencies.delete(fn));
+    effectDependencies.set(fn, new Set());
+    const previousEffect = currentEffect;
     currentEffect = fn;
     try {
-        fn();
+        return fn();
     } finally {
-        currentEffect = null;
+        currentEffect = previousEffect;
     }
 }
 
-/**
- * Schedule a batched DOM update
- */
 export function scheduleUpdate(callback) {
+    if (typeof callback === 'function') pendingCallbacks.add(callback);
     if (pendingUpdate) return;
-    
     pendingUpdate = true;
     queueMicrotask(() => {
         pendingUpdate = false;
-        
-        // Run all pending effects
         const effects = [...pendingEffects];
+        const callbacks = [...pendingCallbacks];
         pendingEffects.clear();
+        pendingCallbacks.clear();
         effects.forEach(effect => {
             try {
                 runEffect(effect);
-            } catch (e) {
-                console.error('[SenangStart] Effect error:', e);
+            } catch (error) {
+                console.error('[SenangStart] Effect error:', error);
             }
         });
-        
-        if (callback) callback();
+        callbacks.forEach(update => {
+            try {
+                update();
+            } catch (error) {
+                console.error('[SenangStart] Update error:', error);
+            }
+        });
     });
 }

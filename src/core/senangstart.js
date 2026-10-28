@@ -16,8 +16,8 @@ const { walk, setReferences } = walker;
 // =========================================================================
 // Internal State
 // =========================================================================
-const registeredDataFactories = {};  // SenangStart.data() registrations
-const stores = {};                   // SenangStart.store() registrations
+const registeredDataFactories = Object.create(null);
+const stores = Object.create(null);
 
 // Set references in walker module
 setReferences(registeredDataFactories, stores);
@@ -47,7 +47,7 @@ const SenangStart = {
      * @param {Object} data - Store data object
      */
     store(name, data) {
-        if (typeof data !== 'object') {
+        if (!data || typeof data !== 'object') {
             console.error('[SenangStart] store() requires an object');
             return this;
         }
@@ -68,6 +68,7 @@ const SenangStart = {
      * Start the framework
      */
     start() {
+        if (typeof document === 'undefined') return this;
         if (this.isStarted) return this;
         this.isStarted = true;
 
@@ -86,7 +87,7 @@ const SenangStart = {
     /**
      * Version
      */
-    version: '0.1.0',
+    version: '0.1.7',
 
     /**
      * Internal APIs exposed for modular directives

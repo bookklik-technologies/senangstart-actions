@@ -22,7 +22,10 @@ export function handleEvent(el, attrName, expr, scope) {
 
     let listenerTarget = el;
 
-    let handler = (e) => invoke(e);
+    let active = true;
+    let handler = (e) => {
+        if (active) invoke(e);
+    };
 
     // This little helper allows us to add functionality to the listener's
     // handler more flexibly in a "middleware" style.
@@ -82,6 +85,7 @@ export function handleEvent(el, attrName, expr, scope) {
     listenerTarget.addEventListener(event, handler, optionsRef);
 
     const removeListener = () => {
+        active = false;
         listenerTarget.removeEventListener(event, handler, optionsRef);
     };
 
@@ -101,23 +105,13 @@ export function handleEvent(el, attrName, expr, scope) {
     function invoke(e) {
         if (isBareMethodReference(expr)) {
             const evaluator = createEvaluator(expr, scope, el);
-            scope.data.$event = e;
-            try {
-                const fn = evaluator();
-                if (typeof fn === 'function') fn(e);
-                return;
-            } finally {
-                delete scope.data.$event;
-            }
+            const fn = evaluator({ $event: e });
+            if (typeof fn === 'function') fn(e);
+            return;
         }
 
         const executor = createExecutor(expr, scope, el);
-        scope.data.$event = e;
-        try {
-            executor();
-        } finally {
-            delete scope.data.$event;
-        }
+        executor({ $event: e });
     }
 }
 

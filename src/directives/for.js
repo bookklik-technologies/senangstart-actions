@@ -1,64 +1,64 @@
 import { registerStructural } from '../core/registry.js';
 import { createEvaluator } from '../evaluator.js';
 import { createReactive, runEffect } from '../reactive.js';
+import { createRegion } from './region.js';
 
-export function install() {
-    registerStructural('ss-for', (templateEl, expr, scope, walk) => {
-        // Parse "item in items"
-        const match = expr.match(/^\s*(?:\(([^,]+),\s*([^)]+)\)|([^\s]+))\s+in\s+(.+)$/);
-        if (!match) {
-            console.error('[SenangStart] Invalid ss-for expression:', expr);
-            return false;
+export function handleFor(templateEl, expr, scope, walk) {
+    if (templateEl.tagName !== 'TEMPLATE') {
+        console.error('[SenangStart] ss-for requires a template element');
+        return false;
+    }
+    const match = expr.match(/^\s*(?:\(([^,]+),\s*([^)]+)\)|([^\s]+))\s+in\s+(.+)$/);
+    if (!match) {
+        console.error('[SenangStart] Invalid ss-for expression:', expr);
+        return false;
+    }
+    const itemName = (match[1] || match[3]).trim();
+    const indexName = (match[2] || 'index').trim();
+    const { parent, anchor, clear } = createRegion(templateEl, `ss-for: ${expr}`);
+    const evaluate = createEvaluator(match[4], scope, templateEl);
+
+    runEffect(() => {
+        const items = evaluate() ?? [];
+        if (!Array.isArray(items)) {
+            console.error('[SenangStart] ss-for requires an array:', expr);
+            return;
         }
-        
-        const itemName = (match[1] || match[3]).trim();
-        const indexName = (match[2] || 'index').trim();
-        const arrayExpr = match[4];
-        
-        const parent = templateEl.parentNode;
-        const anchor = document.createComment(`ss-for: ${expr}`);
-        parent.insertBefore(anchor, templateEl);
-        templateEl.remove();
-        
-        let currentNodes = [];
-        let lastItemsJSON = '';
-        
-        const update = () => {
-            const evaluator = createEvaluator(arrayExpr, scope, templateEl);
-            const items = evaluator() || [];
-            
-            const itemsJSON = JSON.stringify(items);
-            if (itemsJSON === lastItemsJSON) return;
-            lastItemsJSON = itemsJSON;
-            
-            currentNodes.forEach(node => node.remove());
-            currentNodes = [];
-            
-            items.forEach((item, index) => {
-                const clone = templateEl.content.cloneNode(true);
-                const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
-                
-                const itemScope = {
-                    data: createReactive({ 
-                        ...scope.data, 
-                        [itemName]: item, 
-                        [indexName]: index 
-                    }, () => {}),
-                    $refs: scope.$refs,
-                    $store: scope.$store,
-                    parentData: scope.data
-                };
-                
-                nodes.forEach(node => {
-                    parent.insertBefore(node, anchor);
-                    currentNodes.push(node);
+        clear();
+
+        items.forEach((item, index) => {
+            const localData = createReactive({ [itemName]: item, [indexName]: index }, () => {});
+            const data = new Proxy(localData, {
+                has(target, property) {
+                    return Reflect.has(target, property) || Reflect.has(scope.data, property);
+                },
+                get(target, property, receiver) {
+                    if (property === '__isReactive' || property === '__subscribers' || Reflect.has(target, property)) {
+                        return Reflect.get(target, property, receiver);
+                    }
+                    return scope.data[property];
+                },
+                set(target, property, value) {
+                    if (Object.hasOwn(target, property) || !Reflect.has(scope.data, property)) {
+                        return Reflect.set(target, property, value);
+                    }
+                    return Reflect.set(scope.data, property, value);
+                }
+            });
+            const itemScope = { ...scope, data, parentData: scope.data };
+            const clone = templateEl.content.cloneNode(true);
+            Array.from(clone.childNodes).forEach(node => {
+                parent.insertBefore(node, anchor);
+                if (node.nodeType === 1) {
                     node.__ssScope = itemScope;
                     if (walk) walk(node, itemScope);
-                });
+                }
             });
-        };
-        
-        runEffect(update);
-        return true; // Stop walking the template element (it was removed)
-    });
+        });
+    }, anchor);
+    return true;
+}
+
+export function install() {
+    registerStructural('ss-for', handleFor);
 }

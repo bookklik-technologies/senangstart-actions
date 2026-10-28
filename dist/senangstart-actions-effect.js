@@ -1,75 +1,67 @@
 this.SenangStart = (function (SenangStart, registry_js, reactive_js) {
     'use strict';
 
-    /**
-     * SenangStart Actions - Expression Evaluator
-     * Safe evaluation of expressions within component scope
-     * 
-     * @module evaluator
-     */
-
-
-    /**
-     * Create a function to execute a statement (not return value)
-     */
-    function createExecutor(expression, scope, element) {
+    function createMagics(scope, element) {
         const { data, $refs, $store } = scope;
-        
-        const magics = {
+        return {
             $data: data,
-            $store: $store,
+            $store,
             $el: element,
             $my: element,
-            $refs: $refs,
-            $dispatch: (name, detail = {}) => {
-                element.dispatchEvent(new CustomEvent(name, {
-                    detail,
-                    bubbles: true,
-                    cancelable: true
-                }));
-            },
-            $watch: (prop, callback) => {
-                if (data.__subscribers) {
-                    if (!data.__subscribers.has(prop)) {
-                        data.__subscribers.set(prop, new Set());
+            $refs,
+            $dispatch: (name, detail = {}) => element.dispatchEvent(new CustomEvent(name, {
+                detail,
+                bubbles: true,
+                cancelable: true
+            })),
+            $watch: (property, callback) => {
+                let previousValue;
+                let initialized = false;
+                reactive_js.runEffect(() => {
+                    const value = data[property];
+                    if (initialized && !Object.is(value, previousValue)) {
+                        const oldValue = previousValue;
+                        previousValue = value;
+                        queueMicrotask(() => callback(value, oldValue));
+                    } else {
+                        previousValue = value;
+                        initialized = true;
                     }
-                    data.__subscribers.get(prop).add(() => callback(data[prop]));
-                }
+                }, element);
             },
-            $nextTick: (fn) => {
-                queueMicrotask(fn);
+            $nextTick: (callback) => queueMicrotask(callback),
+            $id: (name, key) => {
+                const root = scope.$idRoots && Object.hasOwn(scope.$idRoots, name) ? scope.$idRoots[name] : undefined;
+                if (!root) return undefined;
+                return `${name}-${root}${key !== undefined && key !== null ? `-${key}` : ''}`;
             }
         };
-        
-        const dataKeys = Object.keys(typeof data === 'object' && data !== null ? data : {});
-        const magicKeys = Object.keys(magics);
-        
+    }
+
+    function compile(expression, scope, element, statement) {
+        const magics = createMagics(scope, element);
         try {
-            const fn = new Function(
-                ...dataKeys,
-                ...magicKeys,
-                `with(this) { ${expression} }`
-            );
-            
-            return function() {
-                const dataValues = dataKeys.map(k => data[k]);
-                const magicValues = magicKeys.map(k => magics[k]);
-                return fn.call(data, ...dataValues, ...magicValues);
-            };
-        } catch (e) {
-            console.error(`[SenangStart] Failed to parse expression: ${expression}`, e);
-            return () => {};
+            const body = statement ? expression : `return (${expression});`;
+            const evaluate = new Function('$scope', '$magics', '$locals',
+                `with ($magics) { with ($scope) { with ($locals) { ${body} } } }`);
+            return (locals = {}) => evaluate.call(scope.data, scope.data, magics, locals);
+        } catch (error) {
+            console.error(`[SenangStart] Failed to parse expression: ${expression}`, error);
+            return () => undefined;
         }
     }
 
+    function createExecutor(expression, scope, element) {
+        return compile(expression, scope, element, true);
+    }
+
+    function handleEffect(el, expr, scope) {
+        const execute = createExecutor(expr, scope, el);
+        reactive_js.runEffect(() => execute(), el);
+    }
+
     function install() {
-        registry_js.registerAttribute('ss-effect', (el, expr, scope) => {
-            const update = () => {
-                const executor = createExecutor(expr, scope, el);
-                executor();
-            };
-            reactive_js.runEffect(update);
-        });
+        registry_js.registerAttribute('ss-effect', handleEffect);
     }
 
     install();

@@ -1,137 +1,140 @@
 this.SenangStart = (function (SenangStart, registry_js, reactive_js) {
     'use strict';
 
-    /**
-     * SenangStart Actions - Expression Evaluator
-     * Safe evaluation of expressions within component scope
-     * 
-     * @module evaluator
-     */
-
-    /**
-     * Create a function to evaluate an expression within a component scope
-     */
-    function createEvaluator(expression, scope, element) {
+    function createMagics(scope, element) {
         const { data, $refs, $store } = scope;
-        
-        // Magic properties
-        const magics = {
+        return {
             $data: data,
-            $store: $store,
+            $store,
             $el: element,
             $my: element,
-            $refs: $refs,
-            $dispatch: (name, detail = {}) => {
-                element.dispatchEvent(new CustomEvent(name, {
-                    detail,
-                    bubbles: true,
-                    cancelable: true
-                }));
-            },
-            $watch: (prop, callback) => {
-                const watchEffect = () => {
-                    const value = data[prop];
-                    callback(value);
-                };
-                if (data.__subscribers) {
-                    if (!data.__subscribers.has(prop)) {
-                        data.__subscribers.set(prop, new Set());
+            $refs,
+            $dispatch: (name, detail = {}) => element.dispatchEvent(new CustomEvent(name, {
+                detail,
+                bubbles: true,
+                cancelable: true
+            })),
+            $watch: (property, callback) => {
+                let previousValue;
+                let initialized = false;
+                reactive_js.runEffect(() => {
+                    const value = data[property];
+                    if (initialized && !Object.is(value, previousValue)) {
+                        const oldValue = previousValue;
+                        previousValue = value;
+                        queueMicrotask(() => callback(value, oldValue));
+                    } else {
+                        previousValue = value;
+                        initialized = true;
                     }
-                    data.__subscribers.get(prop).add(watchEffect);
-                }
+                }, element);
             },
-            $nextTick: (fn) => {
-                queueMicrotask(fn);
-            },
+            $nextTick: (callback) => queueMicrotask(callback),
             $id: (name, key) => {
-                if (scope.$idRoots && scope.$idRoots[name]) {
-                    return `${name}-${scope.$idRoots[name]}${key ? `-${key}` : ''}`;
-                }
-                return undefined;
+                const root = scope.$idRoots && Object.hasOwn(scope.$idRoots, name) ? scope.$idRoots[name] : undefined;
+                if (!root) return undefined;
+                return `${name}-${root}${key !== undefined && key !== null ? `-${key}` : ''}`;
             }
         };
-        
-        // Build the function with data properties spread as local variables
-        const dataKeys = Object.keys(typeof data === 'object' && data !== null ? data : {});
-        const magicKeys = Object.keys(magics);
-        
+    }
+
+    function compile(expression, scope, element, statement) {
+        const magics = createMagics(scope, element);
         try {
-            const fn = new Function(
-                ...dataKeys,
-                ...magicKeys,
-                `with(this) { return (${expression}); }`
-            );
-            
-            return function() {
-                const dataValues = dataKeys.map(k => data[k]);
-                const magicValues = magicKeys.map(k => magics[k]);
-                return fn.call(data, ...dataValues, ...magicValues);
-            };
-        } catch (e) {
-            console.error(`[SenangStart] Failed to parse expression: ${expression}`, e);
+            const body = statement ? expression : `return (${expression});`;
+            const evaluate = new Function('$scope', '$magics', '$locals',
+                `with ($magics) { with ($scope) { with ($locals) { ${body} } } }`);
+            return (locals = {}) => evaluate.call(scope.data, scope.data, magics, locals);
+        } catch (error) {
+            console.error(`[SenangStart] Failed to parse expression: ${expression}`, error);
             return () => undefined;
         }
     }
 
-    function install() {
-        registry_js.registerStructural('ss-for', (templateEl, expr, scope, walk) => {
-            // Parse "item in items"
-            const match = expr.match(/^\s*(?:\(([^,]+),\s*([^)]+)\)|([^\s]+))\s+in\s+(.+)$/);
-            if (!match) {
-                console.error('[SenangStart] Invalid ss-for expression:', expr);
-                return false;
+    function createEvaluator(expression, scope, element) {
+        return compile(expression, scope, element, false);
+    }
+
+    function createRegion(templateEl, label) {
+        const parent = templateEl.parentNode;
+        const start = document.createTextNode('');
+        const anchor = document.createComment(label);
+        parent.insertBefore(start, templateEl);
+        parent.insertBefore(anchor, templateEl);
+        templateEl.remove();
+
+        const clear = () => {
+            while (start.nextSibling && start.nextSibling !== anchor) {
+                const node = start.nextSibling;
+                reactive_js.cleanupTree(node);
+                node.remove();
             }
-            
-            const itemName = (match[1] || match[3]).trim();
-            const indexName = (match[2] || 'index').trim();
-            const arrayExpr = match[4];
-            
-            const parent = templateEl.parentNode;
-            const anchor = document.createComment(`ss-for: ${expr}`);
-            parent.insertBefore(anchor, templateEl);
-            templateEl.remove();
-            
-            let currentNodes = [];
-            let lastItemsJSON = '';
-            
-            const update = () => {
-                const evaluator = createEvaluator(arrayExpr, scope, templateEl);
-                const items = evaluator() || [];
-                
-                const itemsJSON = JSON.stringify(items);
-                if (itemsJSON === lastItemsJSON) return;
-                lastItemsJSON = itemsJSON;
-                
-                currentNodes.forEach(node => node.remove());
-                currentNodes = [];
-                
-                items.forEach((item, index) => {
-                    const clone = templateEl.content.cloneNode(true);
-                    const nodes = Array.from(clone.childNodes).filter(n => n.nodeType === 1);
-                    
-                    const itemScope = {
-                        data: reactive_js.createReactive({ 
-                            ...scope.data, 
-                            [itemName]: item, 
-                            [indexName]: index 
-                        }, () => {}),
-                        $refs: scope.$refs,
-                        $store: scope.$store,
-                        parentData: scope.data
-                    };
-                    
-                    nodes.forEach(node => {
-                        parent.insertBefore(node, anchor);
-                        currentNodes.push(node);
+        };
+        anchor.__ssOnCleanup = [() => {
+            clear();
+            start.remove();
+        }];
+        return { parent, anchor, clear };
+    }
+
+    function handleFor(templateEl, expr, scope, walk) {
+        if (templateEl.tagName !== 'TEMPLATE') {
+            console.error('[SenangStart] ss-for requires a template element');
+            return false;
+        }
+        const match = expr.match(/^\s*(?:\(([^,]+),\s*([^)]+)\)|([^\s]+))\s+in\s+(.+)$/);
+        if (!match) {
+            console.error('[SenangStart] Invalid ss-for expression:', expr);
+            return false;
+        }
+        const itemName = (match[1] || match[3]).trim();
+        const indexName = (match[2] || 'index').trim();
+        const { parent, anchor, clear } = createRegion(templateEl, `ss-for: ${expr}`);
+        const evaluate = createEvaluator(match[4], scope, templateEl);
+
+        reactive_js.runEffect(() => {
+            const items = evaluate() ?? [];
+            if (!Array.isArray(items)) {
+                console.error('[SenangStart] ss-for requires an array:', expr);
+                return;
+            }
+            clear();
+
+            items.forEach((item, index) => {
+                const localData = reactive_js.createReactive({ [itemName]: item, [indexName]: index }, () => {});
+                const data = new Proxy(localData, {
+                    has(target, property) {
+                        return Reflect.has(target, property) || Reflect.has(scope.data, property);
+                    },
+                    get(target, property, receiver) {
+                        if (property === '__isReactive' || property === '__subscribers' || Reflect.has(target, property)) {
+                            return Reflect.get(target, property, receiver);
+                        }
+                        return scope.data[property];
+                    },
+                    set(target, property, value) {
+                        if (Object.hasOwn(target, property) || !Reflect.has(scope.data, property)) {
+                            return Reflect.set(target, property, value);
+                        }
+                        return Reflect.set(scope.data, property, value);
+                    }
+                });
+                const itemScope = { ...scope, data, parentData: scope.data };
+                const clone = templateEl.content.cloneNode(true);
+                Array.from(clone.childNodes).forEach(node => {
+                    parent.insertBefore(node, anchor);
+                    if (node.nodeType === 1) {
                         node.__ssScope = itemScope;
                         if (walk) walk(node, itemScope);
-                    });
+                    }
                 });
-            };
-            
-            reactive_js.runEffect(update);
-            return true; // Stop walking the template element (it was removed)
-        });
+            });
+        }, anchor);
+        return true;
+    }
+
+    function install() {
+        registry_js.registerStructural('ss-for', handleFor);
     }
 
     install();

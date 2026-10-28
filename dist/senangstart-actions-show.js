@@ -1,76 +1,58 @@
 this.SenangStart = (function (SenangStart, registry_js, reactive_js) {
     'use strict';
 
-    /**
-     * SenangStart Actions - Expression Evaluator
-     * Safe evaluation of expressions within component scope
-     * 
-     * @module evaluator
-     */
-
-    /**
-     * Create a function to evaluate an expression within a component scope
-     */
-    function createEvaluator(expression, scope, element) {
+    function createMagics(scope, element) {
         const { data, $refs, $store } = scope;
-        
-        // Magic properties
-        const magics = {
+        return {
             $data: data,
-            $store: $store,
+            $store,
             $el: element,
             $my: element,
-            $refs: $refs,
-            $dispatch: (name, detail = {}) => {
-                element.dispatchEvent(new CustomEvent(name, {
-                    detail,
-                    bubbles: true,
-                    cancelable: true
-                }));
-            },
-            $watch: (prop, callback) => {
-                const watchEffect = () => {
-                    const value = data[prop];
-                    callback(value);
-                };
-                if (data.__subscribers) {
-                    if (!data.__subscribers.has(prop)) {
-                        data.__subscribers.set(prop, new Set());
+            $refs,
+            $dispatch: (name, detail = {}) => element.dispatchEvent(new CustomEvent(name, {
+                detail,
+                bubbles: true,
+                cancelable: true
+            })),
+            $watch: (property, callback) => {
+                let previousValue;
+                let initialized = false;
+                reactive_js.runEffect(() => {
+                    const value = data[property];
+                    if (initialized && !Object.is(value, previousValue)) {
+                        const oldValue = previousValue;
+                        previousValue = value;
+                        queueMicrotask(() => callback(value, oldValue));
+                    } else {
+                        previousValue = value;
+                        initialized = true;
                     }
-                    data.__subscribers.get(prop).add(watchEffect);
-                }
+                }, element);
             },
-            $nextTick: (fn) => {
-                queueMicrotask(fn);
-            },
+            $nextTick: (callback) => queueMicrotask(callback),
             $id: (name, key) => {
-                if (scope.$idRoots && scope.$idRoots[name]) {
-                    return `${name}-${scope.$idRoots[name]}${key ? `-${key}` : ''}`;
-                }
-                return undefined;
+                const root = scope.$idRoots && Object.hasOwn(scope.$idRoots, name) ? scope.$idRoots[name] : undefined;
+                if (!root) return undefined;
+                return `${name}-${root}${key !== undefined && key !== null ? `-${key}` : ''}`;
             }
         };
-        
-        // Build the function with data properties spread as local variables
-        const dataKeys = Object.keys(typeof data === 'object' && data !== null ? data : {});
-        const magicKeys = Object.keys(magics);
-        
+    }
+
+    function compile(expression, scope, element, statement) {
+        const magics = createMagics(scope, element);
         try {
-            const fn = new Function(
-                ...dataKeys,
-                ...magicKeys,
-                `with(this) { return (${expression}); }`
-            );
-            
-            return function() {
-                const dataValues = dataKeys.map(k => data[k]);
-                const magicValues = magicKeys.map(k => magics[k]);
-                return fn.call(data, ...dataValues, ...magicValues);
-            };
-        } catch (e) {
-            console.error(`[SenangStart] Failed to parse expression: ${expression}`, e);
+            const body = statement ? expression : `return (${expression});`;
+            const evaluate = new Function('$scope', '$magics', '$locals',
+                `with ($magics) { with ($scope) { with ($locals) { ${body} } } }`);
+            return (locals = {}) => evaluate.call(scope.data, scope.data, magics, locals);
+        } catch (error) {
+            console.error(`[SenangStart] Failed to parse expression: ${expression}`, error);
             return () => undefined;
         }
+    }
+
+    function createEvaluator(expression, scope, element) {
+        return compile(expression, scope, element, false);
     }
 
     /**
@@ -222,26 +204,19 @@ this.SenangStart = (function (SenangStart, registry_js, reactive_js) {
         }
     }
 
+    function handleShow(el, expr, scope) {
+        const originalDisplay = el.style.display || '';
+        const evaluate = createEvaluator(expr, scope, el);
+        reactive_js.runEffect(() => {
+            const show = !!evaluate();
+            const hasTransition = Array.from(el.attributes).some(attr => attr.name.startsWith('ss-transition'));
+            if (hasTransition) handleTransition(el, show, originalDisplay);
+            else el.style.display = show ? originalDisplay : 'none';
+        }, el);
+    }
+
     function install() {
-        registry_js.registerAttribute('ss-show', (el, expr, scope) => {
-            const originalDisplay = el.style.display || '';
-            
-            const update = () => {
-                const evaluator = createEvaluator(expr, scope, el);
-                const show = !!evaluator();
-                
-                // Check for any transition attribute
-                const hasTransition = Array.from(el.attributes)
-                    .some(attr => attr.name.startsWith('ss-transition'));
-                
-                if (hasTransition) {
-                    handleTransition(el, show, originalDisplay);
-                } else {
-                    el.style.display = show ? originalDisplay : 'none';
-                }
-            };
-            reactive_js.runEffect(update);
-        });
+        registry_js.registerAttribute('ss-show', handleShow);
     }
 
     // show usually needs transition too? Assume logic is embedded or separate?

@@ -5,7 +5,6 @@
  * @module walker
  */
 
-import { createReactive } from './reactive.js';
 import { 
     getAttributeHandlers, 
     getStructuralHandler, 
@@ -22,7 +21,7 @@ import {
  */
 export function walk(el, parentScope = null) {
     // Skip non-element nodes
-    if (el.nodeType !== 1) return;
+    if (!el || el.nodeType !== 1 || el.__ssInitialized) return;
     
     // Skip if element has ss-ignore
     if (el.hasAttribute('ss-ignore')) return;
@@ -60,6 +59,8 @@ export function walk(el, parentScope = null) {
         Array.from(el.children).forEach(child => walk(child, null));
         return;
     }
+
+    el.__ssInitialized = true;
     
     // 2. Handle Structural Directives (change DOM structure: ss-if, ss-for, ss-teleport)
     // These must run before other attributes and might stop traversal of current node.
@@ -158,11 +159,11 @@ export function setReferences(dataFactories, storeRef) {
 
 // Helpers for scope handlers to access global stores/factories
 export function getStore(name) {
-    return stores[name];
+    return Object.hasOwn(stores, name) ? stores[name] : undefined;
 }
 
 export function getDataFactory(name) {
-    return registeredDataFactories[name];
+    return Object.hasOwn(registeredDataFactories, name) ? registeredDataFactories[name] : undefined;
 }
 
 export function getGlobalStores() {

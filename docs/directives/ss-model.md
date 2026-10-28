@@ -14,6 +14,19 @@ The `ss-model` directive creates two-way data binding between form elements and 
 <input ss-model="property">
 ```
 
+Nested properties and array entries are writable using member expressions:
+
+```html
+<div ss-data="{ user: { name: '' }, tags: [''] }">
+  <input ss-model="user.name">
+  <input ss-model="tags[0]">
+</div>
+```
+
+Initialize the containing objects and arrays before binding. Text inputs use the
+`input` event; checkboxes, radios, and selects use `change`. Values from text,
+number, radio, and select controls remain strings; checkboxes bind booleans.
+
 ## Supported Elements
 
 ### Text Input

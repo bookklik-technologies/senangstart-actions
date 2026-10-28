@@ -41,19 +41,15 @@ Rollup configuration in `rollup.config.js`:
 "version": "X.Y.Z"
 ```
 
-3. Update version in `src/index.js` (if exposed):
+3. Update the public version in `src/core/senangstart.js`:
 
 ```javascript
 version: 'X.Y.Z'
 ```
 
-4. Update banner version in `rollup.config.js`:
+4. Bundle banners in `rollup.config.js` read the version from `package.json` automatically.
 
-```javascript
-banner: '/**\n * SenangStart Actions vX.Y.Z\n...'
-```
-
-5. Run tests to ensure everything passes:
+5. Ask the user before running unit tests, then run the suite only with approval:
 
 ```bash
 npm run test

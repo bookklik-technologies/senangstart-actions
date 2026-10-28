@@ -1,5 +1,5 @@
 /**
- * SenangStart Actions v0.1.0
+ * SenangStart Actions
  * Declarative UI framework for humans and AI agents
  * 
  * @license MIT

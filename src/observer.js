@@ -6,6 +6,7 @@
  */
 
 import { walk } from './walker.js';
+import { cleanupTree } from './reactive.js';
 
 /**
  * Set up observer for dynamically added elements
@@ -13,9 +14,12 @@ import { walk } from './walker.js';
 export function setupObserver() {
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
+            for (const node of mutation.removedNodes) {
+                if (!node.isConnected) cleanupTree(node);
+            }
             for (const node of mutation.addedNodes) {
                 if (node.nodeType === 1) {
-                    if (node.__ssScope) return;
+                    if (node.__ssInitialized || !node.isConnected) continue;
                     
                     // Check if node or any ancestor already has scope
                     let current = node;

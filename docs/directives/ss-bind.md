@@ -16,6 +16,11 @@ The `ss-bind` directive dynamically binds HTML attributes to expressions. Use it
 
 ## Common Bindings
 
+Class and style bindings preserve unrelated static classes and inline styles.
+When a binding changes, its previous dynamic classes and styles are restored or
+removed before the new value is applied. `null` clears the dynamic contribution.
+Class-object keys may contain multiple space-separated class names.
+
 ### Class Binding
 
 ```html

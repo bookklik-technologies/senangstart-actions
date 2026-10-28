@@ -6,10 +6,10 @@
  */
 
 const registry = {
-    attributes: {},    // Standard directives (ss-text, ss-show, etc.)
-    structurals: {},   // Structural directives (ss-if, ss-for, etc.)
-    scopes: {},        // Scope-creating directives (ss-data, ss-id)
-    modifiers: {}      // Attribute modifiers
+    attributes: Object.create(null),
+    structurals: Object.create(null),
+    scopes: Object.create(null),
+    modifiers: Object.create(null)
 };
 
 /**

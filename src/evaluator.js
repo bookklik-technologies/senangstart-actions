@@ -1,124 +1,59 @@
-/**
- * SenangStart Actions - Expression Evaluator
- * Safe evaluation of expressions within component scope
- * 
- * @module evaluator
- */
+import { runEffect } from './reactive.js';
 
-/**
- * Create a function to evaluate an expression within a component scope
- */
-export function createEvaluator(expression, scope, element) {
+function createMagics(scope, element) {
     const { data, $refs, $store } = scope;
-    
-    // Magic properties
-    const magics = {
+    return {
         $data: data,
-        $store: $store,
+        $store,
         $el: element,
         $my: element,
-        $refs: $refs,
-        $dispatch: (name, detail = {}) => {
-            element.dispatchEvent(new CustomEvent(name, {
-                detail,
-                bubbles: true,
-                cancelable: true
-            }));
-        },
-        $watch: (prop, callback) => {
-            const watchEffect = () => {
-                const value = data[prop];
-                callback(value);
-            };
-            if (data.__subscribers) {
-                if (!data.__subscribers.has(prop)) {
-                    data.__subscribers.set(prop, new Set());
+        $refs,
+        $dispatch: (name, detail = {}) => element.dispatchEvent(new CustomEvent(name, {
+            detail,
+            bubbles: true,
+            cancelable: true
+        })),
+        $watch: (property, callback) => {
+            let previousValue;
+            let initialized = false;
+            runEffect(() => {
+                const value = data[property];
+                if (initialized && !Object.is(value, previousValue)) {
+                    const oldValue = previousValue;
+                    previousValue = value;
+                    queueMicrotask(() => callback(value, oldValue));
+                } else {
+                    previousValue = value;
+                    initialized = true;
                 }
-                data.__subscribers.get(prop).add(watchEffect);
-            }
+            }, element);
         },
-        $nextTick: (fn) => {
-            queueMicrotask(fn);
-        },
+        $nextTick: (callback) => queueMicrotask(callback),
         $id: (name, key) => {
-            if (scope.$idRoots && scope.$idRoots[name]) {
-                return `${name}-${scope.$idRoots[name]}${key ? `-${key}` : ''}`;
-            }
-            return undefined;
+            const root = scope.$idRoots && Object.hasOwn(scope.$idRoots, name) ? scope.$idRoots[name] : undefined;
+            if (!root) return undefined;
+            return `${name}-${root}${key !== undefined && key !== null ? `-${key}` : ''}`;
         }
     };
-    
-    // Build the function with data properties spread as local variables
-    const dataKeys = Object.keys(typeof data === 'object' && data !== null ? data : {});
-    const magicKeys = Object.keys(magics);
-    
+}
+
+function compile(expression, scope, element, statement) {
+    const magics = createMagics(scope, element);
     try {
-        const fn = new Function(
-            ...dataKeys,
-            ...magicKeys,
-            `with(this) { return (${expression}); }`
-        );
-        
-        return function() {
-            const dataValues = dataKeys.map(k => data[k]);
-            const magicValues = magicKeys.map(k => magics[k]);
-            return fn.call(data, ...dataValues, ...magicValues);
-        };
-    } catch (e) {
-        console.error(`[SenangStart] Failed to parse expression: ${expression}`, e);
+        const body = statement ? expression : `return (${expression});`;
+        const evaluate = new Function('$scope', '$magics', '$locals',
+            `with ($magics) { with ($scope) { with ($locals) { ${body} } } }`);
+        return (locals = {}) => evaluate.call(scope.data, scope.data, magics, locals);
+    } catch (error) {
+        console.error(`[SenangStart] Failed to parse expression: ${expression}`, error);
         return () => undefined;
     }
 }
 
-/**
- * Create a function to execute a statement (not return value)
- */
+export function createEvaluator(expression, scope, element) {
+    return compile(expression, scope, element, false);
+}
+
 export function createExecutor(expression, scope, element) {
-    const { data, $refs, $store } = scope;
-    
-    const magics = {
-        $data: data,
-        $store: $store,
-        $el: element,
-        $my: element,
-        $refs: $refs,
-        $dispatch: (name, detail = {}) => {
-            element.dispatchEvent(new CustomEvent(name, {
-                detail,
-                bubbles: true,
-                cancelable: true
-            }));
-        },
-        $watch: (prop, callback) => {
-            if (data.__subscribers) {
-                if (!data.__subscribers.has(prop)) {
-                    data.__subscribers.set(prop, new Set());
-                }
-                data.__subscribers.get(prop).add(() => callback(data[prop]));
-            }
-        },
-        $nextTick: (fn) => {
-            queueMicrotask(fn);
-        }
-    };
-    
-    const dataKeys = Object.keys(typeof data === 'object' && data !== null ? data : {});
-    const magicKeys = Object.keys(magics);
-    
-    try {
-        const fn = new Function(
-            ...dataKeys,
-            ...magicKeys,
-            `with(this) { ${expression} }`
-        );
-        
-        return function() {
-            const dataValues = dataKeys.map(k => data[k]);
-            const magicValues = magicKeys.map(k => magics[k]);
-            return fn.call(data, ...dataValues, ...magicValues);
-        };
-    } catch (e) {
-        console.error(`[SenangStart] Failed to parse expression: ${expression}`, e);
-        return () => {};
-    }
+    return compile(expression, scope, element, true);
 }
