@@ -47,3 +47,13 @@ features:
 
 <script src="https://unpkg.com/@bookklik/senangstart-actions"></script>
 ```
+
+---
+
+<div style="display: flex; justify-content: center; margin-top: 2rem;">
+  <a href="https://makakami.com.my/app/senangstart-actions" target="_blank" rel="noopener noreferrer">
+    <img src="https://makakami.com.my/badge/senangstart-actions.svg"
+      alt="Listed on MakaKami"
+      width="150" height="40">
+  </a>
+</div>
