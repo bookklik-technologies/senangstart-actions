@@ -90,7 +90,13 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', type: 'image/png', href: 'https://senangstart.com/img/ss_icon_accent.svg' }],
-    ['script', { src: '/senangstart-actions/assets/senangstart-actions.min.js', defer: true }]
+    ['script', { src: '/senangstart-actions/assets/senangstart-actions.min.js', defer: true }],
+    ['script', {
+      src: 'https://web.senanglab.com/widget.js',
+      'data-site': 'f964b201-a9fa-4d99-89f0-ddde8e031d7c',
+      referrerpolicy: 'no-referrer',
+      defer: ''
+    }]
   ],
   
   locales: {
